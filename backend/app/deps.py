@@ -5,6 +5,7 @@ from .config import settings
 from .services.capture import CaptureService
 from .services.mode import ModeService
 from .services.runner import CommandRunner
+from .services.share import ShareService
 from .services.status import StatusService
 
 
@@ -34,3 +35,16 @@ _capture_service = CaptureService(
 
 def get_capture_service() -> CaptureService:
     return _capture_service
+
+
+# ShareService keeps the mock on/off flag, so it's a shared singleton too.
+_share_service = ShareService(
+    runner=CommandRunner(mock=settings.mock),
+    status=StatusService(CommandRunner(mock=settings.mock)),
+    downlink=settings.share_downlink,
+    mock=settings.mock,
+)
+
+
+def get_share_service() -> ShareService:
+    return _share_service

@@ -58,6 +58,39 @@ export interface Network {
   clients: number;
 }
 
+export interface ShareStatus {
+  active: boolean;
+  uplink: string | null;
+  downlink: string;
+  vm_ip: string | null;
+  gateway: string | null;
+  mac_commands: string[];
+}
+
+export async function getShare(): Promise<ShareStatus> {
+  const res = await fetch("/api/share", { headers: { Authorization: `Bearer ${TOKEN}` } });
+  if (!res.ok) throw new Error(`share ${res.status}`);
+  return res.json();
+}
+
+export async function setShare(enabled: boolean): Promise<ShareStatus> {
+  const res = await fetch("/api/share", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) {
+    let detail = `share ${res.status}`;
+    try {
+      detail = (await res.json()).detail ?? detail;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
 export interface CaptureSession {
   id: string;
   started: string;

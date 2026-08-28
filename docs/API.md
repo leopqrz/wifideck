@@ -59,9 +59,14 @@ security[], is_current, clients.
 - `WS /ws/capture` — streams `{ "type": "capture", "data": <CaptureDetail|null> }`
   every 2s for the active session (ap/client counts, handshake/PMKID flags).
 
+### Internet sharing  *(Phase 5)*
+- `GET /api/share` — status: `{ active, uplink, downlink, vm_ip, gateway, mac_commands[] }`.
+- `POST /api/share` — body `{ "enabled": true|false }`. Enables/disables NAT of the
+  ALFA uplink to the host; returns the updated `ShareStatus`. `mac_commands` are the
+  route/DNS lines to run on macOS. `500` if there's no uplink.
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |
 |---|---|---|
-| 5 | `POST /api/share` | internet sharing on/off |
 | 7 | `POST /api/audit/*` | gated active modules |

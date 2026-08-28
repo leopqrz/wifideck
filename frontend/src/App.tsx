@@ -4,16 +4,19 @@ import { AdapterStatus } from "./components/AdapterStatus";
 import { ModeControl } from "./components/ModeControl";
 import { NetworkTable } from "./components/NetworkTable";
 import { CaptureControl } from "./components/CaptureControl";
+import { ShareControl } from "./components/ShareControl";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
 import { useScan } from "./hooks/useScan";
 import { useCapture } from "./hooks/useCapture";
+import { useShare } from "./hooks/useShare";
 
 export default function App() {
   const health = useHealth();
   const { ws, status } = useStatus();
   const scan = useScan();
   const capture = useCapture();
+  const { share, refresh: refreshShare } = useShare();
   const backendOnline = health.status === "online";
 
   return (
@@ -55,8 +58,9 @@ export default function App() {
           <ModeControl status={status} />
         </section>
 
-        <section className="pb-8">
+        <section className="grid gap-4 pb-8 lg:grid-cols-2">
           <CaptureControl status={status} session={capture.session} />
+          <ShareControl share={share} onChange={refreshShare} />
         </section>
 
         <section className="pb-16">

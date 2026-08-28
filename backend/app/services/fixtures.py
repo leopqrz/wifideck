@@ -31,6 +31,13 @@ IP_ADDR = (
     "noprefixroute wlan0\\       valid_lft 6000sec preferred_lft 6000sec\n"
 )
 
+ETH0_ADDR = (
+    "2: eth0    inet 172.16.91.128/24 brd 172.16.91.255 scope global dynamic "
+    "noprefixroute eth0\\       valid_lft 1500sec preferred_lft 1500sec\n"
+)
+
+IP_ROUTE = "default via 10.0.0.1 dev wlan0 proto dhcp src 10.0.0.145 metric 600\n"
+
 DRIVER_PATH = "/sys/bus/usb/drivers/rtw88_8812au\n"
 
 # Terse `nmcli -f IN-USE,BSSID,SSID,CHAN,SIGNAL,SECURITY device wifi list`.
@@ -68,6 +75,10 @@ def match(args: list[str]) -> tuple[int, str, str]:
     if cmd == "readlink":
         return (0, DRIVER_PATH, "")
     if cmd == "ip":
+        if "route" in args:
+            return (0, IP_ROUTE, "")
+        if "eth0" in args:
+            return (0, ETH0_ADDR, "")
         return (0, IP_ADDR, "")
     if cmd == "cat" and args and "operstate" in args[-1]:
         return (0, "up\n", "")

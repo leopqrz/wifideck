@@ -34,6 +34,9 @@ class Settings:
     # Where capture sessions (csv + pcap) are written.
     capture_dir: str = os.environ.get("WIFIDECK_CAPTURE_DIR", "/tmp/wifideck/sessions")
 
+    # Interface facing the host (macOS) for internet sharing (VMware NAT nic).
+    share_downlink: str = os.environ.get("WIFIDECK_SHARE_DOWNLINK", "eth0")
+
     version: str = "0.1.0"
 
 
