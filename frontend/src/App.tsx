@@ -1,89 +1,50 @@
 import { TopRail } from "./components/TopRail";
-import { StatusPill } from "./components/StatusPill";
+import { HealthBanner } from "./components/HealthBanner";
+import { AdapterStatus } from "./components/AdapterStatus";
 import { useHealth } from "./hooks/useHealth";
-import { useWebSocket } from "./hooks/useWebSocket";
-import { echoUrl } from "./api/client";
+import { useStatus } from "./hooks/useStatus";
 
 export default function App() {
   const health = useHealth();
-  const ws = useWebSocket(echoUrl());
+  const { ws, status } = useStatus();
   const backendOnline = health.status === "online";
 
   return (
     <div className="min-h-screen">
-      <TopRail backendOnline={backendOnline} wsStatus={ws.status} />
+      <TopRail
+        backendOnline={backendOnline}
+        wsStatus={ws}
+        adapterMode={status ? status.mode : null}
+      />
 
       <main className="mx-auto max-w-[1080px] px-5">
-        <section className="py-14">
-          <p className="eyebrow">System · Phase 00 · Foundation online</p>
+        <section className="py-12">
+          <p className="eyebrow">System · Phase 01 · Live telemetry</p>
           <h1 className="mt-3 max-w-[18ch] font-display text-4xl font-bold leading-[0.98] text-head sm:text-5xl">
-            Operate the radio,{" "}
+            Adapter{" "}
             <span className="text-accent [text-shadow:0_0_26px_rgba(47,214,214,0.45)]">
-              not the terminal.
+              online.
             </span>
           </h1>
           <p className="mt-4 max-w-[60ch] text-muted">
-            The command center skeleton is live. Backend, auth, and the WebSocket
-            channel are wired — the next phases light up status, mode control, and
-            scanning on top of this shell.
+            Real-time state of the ALFA — mode, link, signal, and health — streamed
+            over WebSocket and refreshed the moment anything changes.
+          </p>
+
+          <HealthBanner status={status} />
+        </section>
+
+        <section className="pb-14">
+          <AdapterStatus status={status} />
+          <p className="mt-3 font-mono text-[11px] text-faint">
+            {ws === "open"
+              ? "live · /ws/status"
+              : ws === "connecting"
+                ? "connecting to /ws/status…"
+                : "stream closed — is the backend running on :8787?"}
           </p>
         </section>
-
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Panel label="Backend">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-lg text-head">API</span>
-              <StatusPill
-                tone={backendOnline ? "ok" : "crit"}
-                label={backendOnline ? "online" : "offline"}
-                live={backendOnline}
-              />
-            </div>
-            <p className="mt-2 font-mono text-xs text-muted">
-              {health.status === "online"
-                ? `v${health.health.version} · mock=${health.health.mock}`
-                : health.status === "error"
-                  ? "unreachable — is uvicorn running on :8787?"
-                  : "connecting…"}
-            </p>
-          </Panel>
-
-          <Panel label="WebSocket">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-lg text-head">/ws/echo</span>
-              <StatusPill
-                tone={ws.status === "open" ? "accent" : "warn"}
-                label={ws.status}
-                live={ws.status === "open"}
-              />
-            </div>
-            <p className="mt-2 font-mono text-xs text-muted">
-              {ws.last ? JSON.stringify(ws.last) : "waiting for hello…"}
-            </p>
-          </Panel>
-
-          <Panel label="Adapter">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-lg text-head">ALFA</span>
-              <StatusPill tone="muted" label="phase 01" />
-            </div>
-            <p className="mt-2 font-mono text-xs text-muted">
-              RTL8812AU · 0bda:8812 · telemetry lands next phase
-            </p>
-          </Panel>
-        </section>
       </main>
-    </div>
-  );
-}
-
-function Panel({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-[10px] border border-line bg-gradient-to-b from-panel-2 to-panel p-4">
-      <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-faint">
-        {label}
-      </div>
-      {children}
     </div>
   );
 }

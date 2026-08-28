@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import ws
 from .config import settings
-from .routers import health
+from .routers import health, status
 
 app = FastAPI(title="WiFiDeck", version=settings.version)
 
@@ -29,6 +29,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(status.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

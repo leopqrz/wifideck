@@ -11,18 +11,35 @@ export interface Health {
   mock: boolean;
 }
 
+export type AdapterHealth = "ok" | "disconnected" | "degraded";
+
+export interface Status {
+  usb_present: boolean;
+  driver: string | null;
+  interface: string | null;
+  mode: string | null; // MANAGED / MONITOR / ...
+  operstate: string | null;
+  ssid: string | null;
+  ip4: string | null;
+  signal_dbm: number | null;
+  tx_bitrate_mbps: number | null;
+  freq_mhz: number | null;
+  band: string | null;
+  health: AdapterHealth;
+  health_detail: string | null;
+}
+
 export async function getHealth(): Promise<Health> {
   const res = await fetch("/api/health", {
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
-  if (!res.ok) {
-    throw new Error(`health ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`health ${res.status}`);
   return res.json();
 }
 
-// Build the echo WebSocket URL with the token as a query parameter.
-export function echoUrl(): string {
+function wsUrl(path: string): string {
   const proto = location.protocol === "https:" ? "wss" : "ws";
-  return `${proto}://${location.host}/ws/echo?token=${encodeURIComponent(TOKEN)}`;
+  return `${proto}://${location.host}${path}?token=${encodeURIComponent(TOKEN)}`;
 }
+
+export const statusUrl = () => wsUrl("/ws/status");

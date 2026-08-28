@@ -43,8 +43,10 @@ class CommandRunner:
         return CommandResult(proc.returncode or 0, out.decode(errors="replace"), err.decode(errors="replace"))
 
     def _mock(self, args: list[str]) -> CommandResult:
-        # Placeholder for Phase 0. Phase 1+ maps commands to fixtures.
-        return CommandResult(0, "", "")
+        from . import fixtures
+
+        rc, out, err = fixtures.match(args)
+        return CommandResult(rc, out, err)
 
 
 runner = CommandRunner()

@@ -1,23 +1,38 @@
 import { StatusPill } from "./StatusPill";
 import type { WsStatus } from "../hooks/useWebSocket";
 
+function modeTone(mode: string | null | undefined): "ok" | "warn" | "muted" {
+  if (mode === "MANAGED") return "ok";
+  if (mode === "MONITOR") return "warn";
+  return "muted";
+}
+
 export function TopRail({
   backendOnline,
   wsStatus,
+  adapterMode,
 }: {
   backendOnline: boolean;
   wsStatus: WsStatus;
+  adapterMode?: string | null;
 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/80 backdrop-blur">
-      <div className="mx-auto flex max-w-[1080px] items-center gap-4 px-5 py-2.5">
+      <div className="mx-auto flex max-w-[1080px] items-center gap-3 px-5 py-2.5">
         <span className="font-display text-sm font-bold uppercase tracking-[0.10em] text-head">
           WIFI<span className="text-accent">DECK</span>
         </span>
         <span className="hidden font-mono text-[12px] text-faint sm:inline">
-          v0.1.0 · phase 00
+          v0.1.0 · phase 01
         </span>
         <div className="flex-1" />
+        {adapterMode !== undefined && (
+          <StatusPill
+            tone={modeTone(adapterMode)}
+            label={adapterMode ?? "no adapter"}
+            live={adapterMode === "MANAGED" || adapterMode === "MONITOR"}
+          />
+        )}
         <StatusPill
           tone={backendOnline ? "ok" : "crit"}
           label={backendOnline ? "API online" : "API offline"}
