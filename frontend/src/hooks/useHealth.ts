@@ -4,7 +4,7 @@ import { getHealth, type Health } from "../api/client";
 type State =
   | { status: "loading" }
   | { status: "online"; health: Health }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string; unauthorized: boolean };
 
 // Polls the backend health endpoint until online, then keeps it fresh.
 export function useHealth(intervalMs = 5000): State {
@@ -17,7 +17,8 @@ export function useHealth(intervalMs = 5000): State {
         const health = await getHealth();
         if (alive) setState({ status: "online", health });
       } catch (e) {
-        if (alive) setState({ status: "error", message: String(e) });
+        const message = String(e);
+        if (alive) setState({ status: "error", message, unauthorized: message.includes("401") });
       }
     };
     tick();

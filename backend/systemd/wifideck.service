@@ -1,23 +1,32 @@
 [Unit]
-Description=WiFiDeck backend (localhost wireless command center)
-After=network.target
+Description=WiFiDeck — localhost wireless command center for the ALFA (RTL8812AU)
+Documentation=https://github.com/ (WiFiDeck) file:/opt/wifideck/README.md
+After=network.target NetworkManager.service
 
 [Service]
 Type=simple
-# Runs as root because mode switching, capture, and NAT need it. The service is
-# bound to 127.0.0.1 and token-authed; never change the bind to a routable address.
+# Root is required: mode switching, capture, NAT, and injection all need it.
+# The service is bound to 127.0.0.1 and token-authed; NEVER change the bind to a
+# routable address. Active (transmit) modules stay off unless WIFIDECK_ENABLE_ACTIVE=1.
 User=root
 WorkingDirectory=/opt/wifideck/backend
 EnvironmentFile=/opt/wifideck/backend/.env
-ExecStart=/opt/wifideck/backend/.venv/bin/uvicorn app.main:app --host ${WIFIDECK_HOST} --port ${WIFIDECK_PORT}
+ExecStart=/opt/wifideck/backend/.venv/bin/uvicorn app.main:app \
+          --host ${WIFIDECK_HOST} --port ${WIFIDECK_PORT}
 Restart=on-failure
 RestartSec=2
 
-# Hardening
-NoNewPrivileges=false
+# --- Hardening ---
 ProtectSystem=full
 ProtectHome=true
 PrivateTmp=true
+NoNewPrivileges=false
+ProtectControlGroups=true
+ProtectKernelTunables=false
+RestrictSUIDSGID=true
+LockPersonality=true
+# Persistent data (captures, scope allowlist, audit log) lives here and stays writable.
+ReadWritePaths=/opt/wifideck/data
 
 [Install]
 WantedBy=multi-user.target

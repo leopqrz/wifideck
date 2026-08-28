@@ -44,7 +44,7 @@ class Settings:
     scope_file: str = os.environ.get("WIFIDECK_SCOPE_FILE", "/tmp/wifideck/scope.json")
     audit_log: str = os.environ.get("WIFIDECK_AUDIT_LOG", "/tmp/wifideck/audit.jsonl")
 
-    version: str = "0.1.0"
+    version: str = "2.0.0"
 
 
 settings = Settings()

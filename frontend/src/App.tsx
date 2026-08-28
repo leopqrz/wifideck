@@ -8,6 +8,7 @@ import { ShareControl } from "./components/ShareControl";
 import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
 import { ActivePanel } from "./components/ActivePanel";
+import { TokenGate } from "./components/TokenGate";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
 import { useScan } from "./hooks/useScan";
@@ -27,9 +28,11 @@ export default function App() {
   const history = useHistory(status);
   const active = useActiveModules();
   const backendOnline = health.status === "online";
+  const needsToken = health.status === "error" && health.unauthorized;
 
   return (
     <div className="min-h-screen">
+      {needsToken && <TokenGate />}
       <TopRail
         backendOnline={backendOnline}
         wsStatus={ws}
