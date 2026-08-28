@@ -31,6 +31,7 @@ export default function App() {
         backendOnline={backendOnline}
         wsStatus={ws}
         adapterMode={status ? status.mode : null}
+        mock={health.status === "online" ? health.health.mock : false}
       />
 
       <main className="mx-auto max-w-[1080px] px-5">

@@ -11,10 +11,12 @@ export function TopRail({
   backendOnline,
   wsStatus,
   adapterMode,
+  mock = false,
 }: {
   backendOnline: boolean;
   wsStatus: WsStatus;
   adapterMode?: string | null;
+  mock?: boolean;
 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/80 backdrop-blur">
@@ -25,6 +27,11 @@ export function TopRail({
         <span className="hidden font-mono text-[12px] text-faint sm:inline">
           v0.1.0 · phase 06
         </span>
+        {mock && (
+          <span className="rounded border border-warn/50 bg-warn/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-warn">
+            mock data
+          </span>
+        )}
         <div className="flex-1" />
         {adapterMode !== undefined && (
           <StatusPill
