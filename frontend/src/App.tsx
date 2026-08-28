@@ -1,6 +1,7 @@
 import { TopRail } from "./components/TopRail";
 import { HealthBanner } from "./components/HealthBanner";
 import { AdapterStatus } from "./components/AdapterStatus";
+import { ModeControl } from "./components/ModeControl";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
 
@@ -34,15 +35,18 @@ export default function App() {
           <HealthBanner status={status} />
         </section>
 
-        <section className="pb-14">
-          <AdapterStatus status={status} />
-          <p className="mt-3 font-mono text-[11px] text-faint">
-            {ws === "open"
-              ? "live · /ws/status"
-              : ws === "connecting"
-                ? "connecting to /ws/status…"
-                : "stream closed — is the backend running on :8787?"}
-          </p>
+        <section className="grid gap-4 pb-14 lg:grid-cols-[1.6fr_1fr]">
+          <div>
+            <AdapterStatus status={status} />
+            <p className="mt-3 font-mono text-[11px] text-faint">
+              {ws === "open"
+                ? "live · /ws/status"
+                : ws === "connecting"
+                  ? "connecting to /ws/status…"
+                  : "stream closed — is the backend running on :8787?"}
+            </p>
+          </div>
+          <ModeControl status={status} />
         </section>
       </main>
     </div>

@@ -43,3 +43,28 @@ function wsUrl(path: string): string {
 }
 
 export const statusUrl = () => wsUrl("/ws/status");
+
+export async function setMode(
+  mode: "managed" | "monitor",
+  channel?: number | null,
+): Promise<Status> {
+  const res = await fetch("/api/mode", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ mode, channel: channel ?? null }),
+  });
+  if (res.status === 409) throw new Error("A mode switch is already in progress.");
+  if (!res.ok) {
+    let detail = `mode ${res.status}`;
+    try {
+      detail = (await res.json()).detail ?? detail;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  return res.json();
+}

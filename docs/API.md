@@ -36,11 +36,17 @@ Current adapter snapshot.
 Pushes `{ "type": "status", "data": <Status> }` on connect and whenever the
 snapshot changes (polled every 2s).
 
+### `POST /api/mode`  *(Phase 2)*
+Switch the adapter. Body: `{ "mode": "managed" | "monitor", "channel": <1-196|null> }`.
+Returns the resulting `Status`. Serialized by a state machine:
+- `409` if a switch is already in progress.
+- `422` on an invalid mode or out-of-range channel.
+- `500` if the switch fails (e.g. not running as root).
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |
 |---|---|---|
-| 2 | `POST /api/mode` | MANAGED ⇄ MONITOR (+channel) |
 | 3 | `WS /ws/scan` | live network list |
 | 4 | `POST /api/capture`, `GET /api/capture/{id}.pcap` | capture control + export |
 | 5 | `POST /api/share` | internet sharing on/off |
