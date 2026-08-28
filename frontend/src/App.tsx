@@ -7,6 +7,7 @@ import { CaptureControl } from "./components/CaptureControl";
 import { ShareControl } from "./components/ShareControl";
 import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
+import { ActivePanel } from "./components/ActivePanel";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
 import { useScan } from "./hooks/useScan";
@@ -14,6 +15,7 @@ import { useCapture } from "./hooks/useCapture";
 import { useShare } from "./hooks/useShare";
 import { useDriver } from "./hooks/useDriver";
 import { useHistory } from "./hooks/useHistory";
+import { useActiveModules } from "./hooks/useActiveModules";
 
 export default function App() {
   const health = useHealth();
@@ -23,6 +25,7 @@ export default function App() {
   const { share, refresh: refreshShare } = useShare();
   const driver = useDriver();
   const history = useHistory(status);
+  const active = useActiveModules();
   const backendOnline = health.status === "online";
 
   return (
@@ -78,8 +81,18 @@ export default function App() {
           <NetworkTable networks={scan.networks} source={scan.source} />
         </section>
 
-        <section className="pb-16">
+        <section className="pb-8">
           <DriverPanel driver={driver} />
+        </section>
+
+        <section className="pb-16">
+          <ActivePanel
+            status={status}
+            enabled={active.enabled}
+            scope={active.scope}
+            audit={active.audit}
+            onChange={active.refresh}
+          />
         </section>
       </main>
 

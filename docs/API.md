@@ -71,6 +71,14 @@ using_recommended, note, install_hint[] }`. `current` prefers the interface-boun
 driver, falling back to the loaded module when the adapter is unplugged. Switching
 drivers is left to the documented `install_hint` root commands (not automated).
 
+### Active modules, scope & audit  *(Phase 7)*
+Transmit actions are **off by default** (`WIFIDECK_ENABLE_ACTIVE=1` to enable) and
+gated by an in-scope allowlist + per-action authorization. Every attempt is audited.
+- `GET /api/active` — `{ enabled }`.
+- `GET /api/scope` · `POST /api/scope {bssid, ssid?, note?}` · `DELETE /api/scope/{bssid}` — manage the authorized-target allowlist (`422` on invalid BSSID).
+- `GET /api/audit?limit=` — recent audit entries (newest first).
+- `POST /api/active/deauth {bssid, client?, count, authorized}` — gated deauth. Refusals: `403` (active disabled / not authorized / not in scope), `409` (not in MONITOR mode). Success returns the `AuditEntry`. **Authorized testing of your own networks only.**
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |

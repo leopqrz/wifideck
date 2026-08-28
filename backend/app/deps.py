@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 from .config import settings
+from .services.active import ActiveService
+from .services.audit import AuditLog
 from .services.capture import CaptureService
 from .services.driver import DriverService
 from .services.mode import ModeService
 from .services.runner import CommandRunner
+from .services.scope import ScopeList
 from .services.share import ShareService
 from .services.status import StatusService
 
@@ -56,3 +59,27 @@ _share_service = ShareService(
 
 def get_share_service() -> ShareService:
     return _share_service
+
+
+# Scope allowlist + audit log are shared singletons (backed by files on disk).
+_scope_list = ScopeList(settings.scope_file)
+_audit_log = AuditLog(settings.audit_log)
+
+
+def get_scope_list() -> ScopeList:
+    return _scope_list
+
+
+def get_audit_log() -> AuditLog:
+    return _audit_log
+
+
+def get_active_service() -> ActiveService:
+    return ActiveService(
+        runner=CommandRunner(mock=settings.mock),
+        scope=_scope_list,
+        audit=_audit_log,
+        status=StatusService(CommandRunner(mock=settings.mock)),
+        enabled=settings.enable_active,
+        mock=settings.mock,
+    )

@@ -58,6 +58,87 @@ export interface Network {
   clients: number;
 }
 
+// ---- Active modules: scope allowlist, audit, gated deauth ----
+export interface ScopeTarget {
+  bssid: string;
+  ssid: string | null;
+  note: string | null;
+  added: string;
+}
+
+export interface AuditEntry {
+  timestamp: string;
+  action: string;
+  result: string;
+  target_bssid: string | null;
+  target_ssid: string | null;
+  channel: number | null;
+  detail: string | null;
+}
+
+async function apiGet<T>(path: string): Promise<T> {
+  const res = await fetch(path, { headers: { Authorization: `Bearer ${TOKEN}` } });
+  if (!res.ok) throw new Error(`${path} ${res.status}`);
+  return res.json();
+}
+
+export const getScope = () => apiGet<ScopeTarget[]>("/api/scope");
+export const getAudit = () => apiGet<AuditEntry[]>("/api/audit");
+export const getActive = () => apiGet<{ enabled: boolean }>("/api/active");
+
+export async function addScope(
+  bssid: string,
+  ssid?: string,
+  note?: string,
+): Promise<ScopeTarget> {
+  const res = await fetch("/api/scope", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ bssid, ssid: ssid || null, note: note || null }),
+  });
+  if (!res.ok) {
+    let d = `scope ${res.status}`;
+    try {
+      d = (await res.json()).detail ?? d;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(d);
+  }
+  return res.json();
+}
+
+export async function removeScope(bssid: string): Promise<void> {
+  const res = await fetch(`/api/scope/${encodeURIComponent(bssid)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+  if (!res.ok) throw new Error(`remove ${res.status}`);
+}
+
+export async function deauth(
+  bssid: string,
+  count: number,
+  authorized: boolean,
+  client?: string,
+): Promise<AuditEntry> {
+  const res = await fetch("/api/active/deauth", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ bssid, count, authorized, client: client || null }),
+  });
+  if (!res.ok) {
+    let d = `deauth ${res.status}`;
+    try {
+      d = (await res.json()).detail ?? d;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(d);
+  }
+  return res.json();
+}
+
 export interface DkmsModule {
   name: string;
   version: string;

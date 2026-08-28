@@ -25,7 +25,7 @@ export function TopRail({
           WIFI<span className="text-accent">DECK</span>
         </span>
         <span className="hidden font-mono text-[12px] text-faint sm:inline">
-          v0.1.0 · phase 06
+          v0.1.0 · phase 07
         </span>
         {mock && (
           <span className="rounded border border-warn/50 bg-warn/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-warn">

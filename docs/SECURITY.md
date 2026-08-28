@@ -13,12 +13,21 @@ wireless radio. The security posture is therefore deliberately conservative.
 - [ ] **Real token in production.** Replace `dev-token-change-me` — generate with
       `openssl rand -hex 24`. (Enforced/reminded at install, Phase 8.)
 
+## Active modules (Phase 7) — implemented
+
+Transmit actions (deauth) sit behind four layered guards, checked in order, with
+every attempt (allowed or refused) written to the audit log:
+
+- [x] **Off by default** — disabled unless `WIFIDECK_ENABLE_ACTIVE=1`.
+- [x] **Per-action authorization** — each request must carry `authorized: true`.
+- [x] **In-scope allowlist** — the target BSSID must be in `/api/scope` (empty by
+      default, so nothing is actionable out of the box).
+- [x] **MONITOR mode required** — enforced on real hardware.
+- [x] **Audit log** — append-only JSONL (`WIFIDECK_AUDIT_LOG`), time + action +
+      target + result, surfaced read-only in the UI.
+
 ## To be added in later phases
 
-- **Audit log** (Phase 7): every transmit/active action recorded with time,
-  module, and target.
-- **Authorization gate** (Phase 7): active modules off by default; require an
-  explicit "authorized on this target" confirmation + an in-scope BSSID allowlist.
 - **systemd hardening** (Phase 8): `ProtectSystem`, `ProtectHome`, `PrivateTmp`,
   minimal writable paths.
 - **Re-run this checklist** as the Phase 8 release gate.

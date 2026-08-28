@@ -37,6 +37,13 @@ class Settings:
     # Interface facing the host (macOS) for internet sharing (VMware NAT nic).
     share_downlink: str = os.environ.get("WIFIDECK_SHARE_DOWNLINK", "eth0")
 
+    # --- Active (transmit) modules: OFF by default -------------------------
+    # Deauth and other frame-injection actions are disabled unless this is set.
+    # Even when enabled they require an in-scope target + per-action auth flag.
+    enable_active: bool = _bool("WIFIDECK_ENABLE_ACTIVE", False)
+    scope_file: str = os.environ.get("WIFIDECK_SCOPE_FILE", "/tmp/wifideck/scope.json")
+    audit_log: str = os.environ.get("WIFIDECK_AUDIT_LOG", "/tmp/wifideck/audit.jsonl")
+
     version: str = "0.1.0"
 
 
