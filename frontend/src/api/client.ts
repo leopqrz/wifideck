@@ -58,6 +58,28 @@ export interface Network {
   clients: number;
 }
 
+export interface DkmsModule {
+  name: string;
+  version: string;
+  status: string;
+}
+
+export interface DriverInfo {
+  current: string | null;
+  kernel: string;
+  dkms: DkmsModule[];
+  recommended: string;
+  using_recommended: boolean;
+  note: string | null;
+  install_hint: string[];
+}
+
+export async function getDriver(): Promise<DriverInfo> {
+  const res = await fetch("/api/driver", { headers: { Authorization: `Bearer ${TOKEN}` } });
+  if (!res.ok) throw new Error(`driver ${res.status}`);
+  return res.json();
+}
+
 export interface ShareStatus {
   active: boolean;
   uplink: string | null;

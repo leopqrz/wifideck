@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from .config import settings
 from .services.capture import CaptureService
+from .services.driver import DriverService
 from .services.mode import ModeService
 from .services.runner import CommandRunner
 from .services.share import ShareService
@@ -11,6 +12,13 @@ from .services.status import StatusService
 
 def get_status_service() -> StatusService:
     return StatusService(CommandRunner(mock=settings.mock))
+
+
+def get_driver_service() -> DriverService:
+    return DriverService(
+        CommandRunner(mock=settings.mock),
+        StatusService(CommandRunner(mock=settings.mock)),
+    )
 
 
 # ModeService holds the switch state machine, so it must be a single shared

@@ -65,6 +65,12 @@ security[], is_current, clients.
   ALFA uplink to the host; returns the updated `ShareStatus`. `mac_commands` are the
   route/DNS lines to run on macOS. `500` if there's no uplink.
 
+### `GET /api/driver`  *(Phase 6)*
+Read-only driver/DKMS report: `{ current, kernel, dkms[], recommended,
+using_recommended, note, install_hint[] }`. `current` prefers the interface-bound
+driver, falling back to the loaded module when the adapter is unplugged. Switching
+drivers is left to the documented `install_hint` root commands (not automated).
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |

@@ -5,11 +5,15 @@ import { ModeControl } from "./components/ModeControl";
 import { NetworkTable } from "./components/NetworkTable";
 import { CaptureControl } from "./components/CaptureControl";
 import { ShareControl } from "./components/ShareControl";
+import { MetricsPanel } from "./components/MetricsPanel";
+import { DriverPanel } from "./components/DriverPanel";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
 import { useScan } from "./hooks/useScan";
 import { useCapture } from "./hooks/useCapture";
 import { useShare } from "./hooks/useShare";
+import { useDriver } from "./hooks/useDriver";
+import { useHistory } from "./hooks/useHistory";
 
 export default function App() {
   const health = useHealth();
@@ -17,6 +21,8 @@ export default function App() {
   const scan = useScan();
   const capture = useCapture();
   const { share, refresh: refreshShare } = useShare();
+  const driver = useDriver();
+  const history = useHistory(status);
   const backendOnline = health.status === "online";
 
   return (
@@ -29,7 +35,7 @@ export default function App() {
 
       <main className="mx-auto max-w-[1080px] px-5">
         <section className="py-12">
-          <p className="eyebrow">System · Phase 01 · Live telemetry</p>
+          <p className="eyebrow">System · v1 · Command center online</p>
           <h1 className="mt-3 max-w-[18ch] font-display text-4xl font-bold leading-[0.98] text-head sm:text-5xl">
             Adapter{" "}
             <span className="text-accent [text-shadow:0_0_26px_rgba(47,214,214,0.45)]">
@@ -58,15 +64,30 @@ export default function App() {
           <ModeControl status={status} />
         </section>
 
+        <section className="pb-8">
+          <MetricsPanel status={status} history={history} />
+        </section>
+
         <section className="grid gap-4 pb-8 lg:grid-cols-2">
           <CaptureControl status={status} session={capture.session} />
           <ShareControl share={share} onChange={refreshShare} />
         </section>
 
-        <section className="pb-16">
+        <section className="pb-8">
           <NetworkTable networks={scan.networks} source={scan.source} />
         </section>
+
+        <section className="pb-16">
+          <DriverPanel driver={driver} />
+        </section>
       </main>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-[1080px] items-center justify-between px-5 py-4 font-mono text-[11px] text-faint">
+          <span>WiFiDeck · localhost console</span>
+          <span>ALFA AWUS036ACH · RTL8812AU · 0bda:8812</span>
+        </div>
+      </footer>
     </div>
   );
 }

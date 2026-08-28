@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import ws
 from .config import settings
-from .routers import capture, health, mode, share, status
+from .routers import capture, driver, health, mode, share, status
 
 app = FastAPI(title="WiFiDeck", version=settings.version)
 
@@ -33,6 +33,7 @@ app.include_router(status.router)
 app.include_router(mode.router)
 app.include_router(capture.router)
 app.include_router(share.router)
+app.include_router(driver.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

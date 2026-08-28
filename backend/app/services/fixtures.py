@@ -61,6 +61,14 @@ AA:BB:CC:DD:EE:FF, 2026-08-28 03:00:00, 2026-08-28 03:05:00, -50, 40, 96:04:E3:E
 """
 
 
+KERNEL = "7.1.5+kali-arm64\n"
+
+DKMS_STATUS = (
+    "realtek-rtl8814au/5.8.5.1~git20250903.8d82854: added\n"
+    "realtek-rtl88xxau/5.6.4.2~git20250330.c3fb89a: added\n"
+)
+
+
 def match(args: list[str]) -> tuple[int, str, str]:
     """Return (returncode, stdout, stderr) for a mocked command."""
     cmd = args[0] if args else ""
@@ -82,4 +90,8 @@ def match(args: list[str]) -> tuple[int, str, str]:
         return (0, IP_ADDR, "")
     if cmd == "cat" and args and "operstate" in args[-1]:
         return (0, "up\n", "")
+    if cmd == "uname":
+        return (0, KERNEL, "")
+    if cmd == "dkms":
+        return (0, DKMS_STATUS, "")
     return (0, "", "")
