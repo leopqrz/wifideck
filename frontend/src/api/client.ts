@@ -43,6 +43,19 @@ function wsUrl(path: string): string {
 }
 
 export const statusUrl = () => wsUrl("/ws/status");
+export const scanUrl = () => wsUrl("/ws/scan");
+
+export interface Network {
+  bssid: string | null;
+  ssid: string | null;
+  band: string | null;
+  channel: number | null;
+  signal_pct: number | null;
+  signal_dbm: number | null;
+  security: string[];
+  is_current: boolean;
+  clients: number;
+}
 
 export async function setMode(
   mode: "managed" | "monitor",

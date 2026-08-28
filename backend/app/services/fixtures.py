@@ -33,12 +33,22 @@ IP_ADDR = (
 
 DRIVER_PATH = "/sys/bus/usb/drivers/rtw88_8812au\n"
 
+# Terse `nmcli -f IN-USE,BSSID,SSID,CHAN,SIGNAL,SECURITY device wifi list`.
+NMCLI_WIFI = (
+    "*:96\\:04\\:E3\\:EC\\:AB\\:5A:Queiroz:157:100:WPA2 WPA3\n"
+    " :58\\:CB\\:52\\:DE\\:18\\:41:High-Five Wifi:6:92:WPA2\n"
+    " :78\\:8A\\:20\\:DD\\:DF\\:B3:MB:6:80:WPA2\n"
+    " :86\\:76\\:3F\\:7F\\:7B\\:B2::1:64:WPA2\n"
+)
+
 
 def match(args: list[str]) -> tuple[int, str, str]:
     """Return (returncode, stdout, stderr) for a mocked command."""
     cmd = args[0] if args else ""
     if cmd == "lsusb":
         return (0, LSUSB, "")
+    if cmd == "nmcli" and "wifi" in args and "list" in args:
+        return (0, NMCLI_WIFI, "")
     if cmd == "iw":
         if args and args[-1] == "link":
             return (0, IW_LINK, "")

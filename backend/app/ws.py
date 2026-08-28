@@ -13,11 +13,13 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from .auth import valid_ws_token
 from .config import settings
 from .services.runner import CommandRunner
+from .services.scan import AirodumpScanner, ScanService
 from .services.status import StatusService
 
 router = APIRouter()
 
 STATUS_POLL_SECONDS = 2.0
+SCAN_POLL_SECONDS = 5.0
 
 
 @router.websocket("/ws/echo")
@@ -56,3 +58,42 @@ async def status_stream(websocket: WebSocket, token: str = "") -> None:
             await asyncio.sleep(STATUS_POLL_SECONDS)
     except WebSocketDisconnect:
         return
+
+
+@router.websocket("/ws/scan")
+async def scan_stream(websocket: WebSocket, token: str = "") -> None:
+    """Stream nearby networks. Uses nmcli in MANAGED mode, airodump in MONITOR."""
+    if not valid_ws_token(token):
+        await websocket.close(code=1008)
+        return
+
+    await websocket.accept()
+    scan = ScanService(CommandRunner(mock=settings.mock))
+    status = StatusService(CommandRunner(mock=settings.mock))
+    airodump: AirodumpScanner | None = None
+    try:
+        while True:
+            snap = await status.snapshot()
+            if snap.mode == "MONITOR" and snap.interface and not settings.mock:
+                if airodump is None:
+                    airodump = AirodumpScanner(snap.interface)
+                    await airodump.start()
+                    await asyncio.sleep(2)  # let it gather a first sweep
+                nets = airodump.read()
+                source = "monitor"
+            else:
+                if airodump is not None:
+                    await airodump.stop()
+                    airodump = None
+                nets = await scan.scan_managed()
+                source = "managed"
+            await websocket.send_json(
+                {"type": "scan", "source": source,
+                 "data": [n.model_dump(mode="json") for n in nets]}
+            )
+            await asyncio.sleep(SCAN_POLL_SECONDS)
+    except WebSocketDisconnect:
+        return
+    finally:
+        if airodump is not None:
+            await airodump.stop()

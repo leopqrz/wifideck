@@ -2,12 +2,15 @@ import { TopRail } from "./components/TopRail";
 import { HealthBanner } from "./components/HealthBanner";
 import { AdapterStatus } from "./components/AdapterStatus";
 import { ModeControl } from "./components/ModeControl";
+import { NetworkTable } from "./components/NetworkTable";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
+import { useScan } from "./hooks/useScan";
 
 export default function App() {
   const health = useHealth();
   const { ws, status } = useStatus();
+  const scan = useScan();
   const backendOnline = health.status === "online";
 
   return (
@@ -47,6 +50,10 @@ export default function App() {
             </p>
           </div>
           <ModeControl status={status} />
+        </section>
+
+        <section className="pb-16">
+          <NetworkTable networks={scan.networks} source={scan.source} />
         </section>
       </main>
     </div>

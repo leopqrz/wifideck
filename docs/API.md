@@ -43,11 +43,16 @@ Returns the resulting `Status`. Serialized by a state machine:
 - `422` on an invalid mode or out-of-range channel.
 - `500` if the switch fails (e.g. not running as root).
 
+### `WS /ws/scan`  *(Phase 3)*
+Streams `{ "type": "scan", "source": "managed"|"monitor", "data": [<Network>...] }`
+every 5s. Source auto-selected from the current mode (nmcli in MANAGED, airodump
+in MONITOR). `Network`: bssid, ssid, band, channel, signal_pct, signal_dbm,
+security[], is_current, clients.
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |
 |---|---|---|
-| 3 | `WS /ws/scan` | live network list |
 | 4 | `POST /api/capture`, `GET /api/capture/{id}.pcap` | capture control + export |
 | 5 | `POST /api/share` | internet sharing on/off |
 | 7 | `POST /api/audit/*` | gated active modules |
