@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/api/client.ts","./src/components/StatusPill.tsx","./src/components/TopRail.tsx","./src/hooks/useHealth.ts","./src/hooks/useWebSocket.ts","./src/test/TopRail.test.tsx","./src/test/setup.ts"],"errors":true,"version":"5.9.3"}

@@ -1,0 +1,23 @@
+[Unit]
+Description=WiFiDeck backend (localhost wireless command center)
+After=network.target
+
+[Service]
+Type=simple
+# Runs as root because mode switching, capture, and NAT need it. The service is
+# bound to 127.0.0.1 and token-authed; never change the bind to a routable address.
+User=root
+WorkingDirectory=/opt/wifideck/backend
+EnvironmentFile=/opt/wifideck/backend/.env
+ExecStart=/opt/wifideck/backend/.venv/bin/uvicorn app.main:app --host ${WIFIDECK_HOST} --port ${WIFIDECK_PORT}
+Restart=on-failure
+RestartSec=2
+
+# Hardening
+NoNewPrivileges=false
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

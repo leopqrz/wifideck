@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-bg text-text font-body antialiased;
+    /* faint console grid, matching the roadmap page */
+    background-image:
+      radial-gradient(1200px 600px at 78% -8%, rgba(47, 214, 214, 0.06), transparent 60%),
+      linear-gradient(#0c1218 1px, transparent 1px);
+    background-size: 100% 100%, 100% 40px;
+  }
+
+  :focus-visible {
+    @apply outline outline-2 outline-accent;
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase text-accent;
+    letter-spacing: 0.22em;
+  }
+}
