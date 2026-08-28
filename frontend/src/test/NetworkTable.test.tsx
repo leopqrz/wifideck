@@ -17,7 +17,7 @@ const net = (p: Partial<Network>): Network => ({
 });
 
 const data: Network[] = [
-  net({ ssid: "Queiroz", channel: 157, signal_pct: 100, is_current: true, security: ["WPA2", "WPA3"] }),
+  net({ ssid: "MockNet-5G", channel: 157, signal_pct: 100, is_current: true, security: ["WPA2", "WPA3"] }),
   net({ ssid: "CafeWifi", channel: 6, band: "2.4 GHz", signal_pct: 50 }),
   net({ ssid: null, channel: 1, band: "2.4 GHz", signal_pct: 30 }),
 ];
@@ -25,7 +25,7 @@ const data: Network[] = [
 describe("NetworkTable", () => {
   it("renders rows and marks the current network", () => {
     render(<NetworkTable networks={data} source="managed" />);
-    expect(screen.getByText("Queiroz")).toBeInTheDocument();
+    expect(screen.getByText("MockNet-5G")).toBeInTheDocument();
     expect(screen.getByText("3 shown")).toBeInTheDocument();
     expect(screen.getByText("<hidden>")).toBeInTheDocument();
   });
@@ -36,13 +36,13 @@ describe("NetworkTable", () => {
       target: { value: "cafe" },
     });
     expect(screen.getByText("CafeWifi")).toBeInTheDocument();
-    expect(screen.queryByText("Queiroz")).not.toBeInTheDocument();
+    expect(screen.queryByText("MockNet-5G")).not.toBeInTheDocument();
   });
 
   it("filters by band", () => {
     render(<NetworkTable networks={data} source="managed" />);
     fireEvent.click(screen.getByRole("button", { name: "5 GHz" }));
-    expect(screen.getByText("Queiroz")).toBeInTheDocument();
+    expect(screen.getByText("MockNet-5G")).toBeInTheDocument();
     expect(screen.queryByText("CafeWifi")).not.toBeInTheDocument();
   });
 

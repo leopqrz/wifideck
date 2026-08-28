@@ -22,10 +22,10 @@ def test_status_endpoint_mock(client, auth_headers):
         assert d["interface"] == "wlan0"
         assert d["mode"] == "MANAGED"
         assert d["driver"] == "rtw88_8812au"
-        assert d["ssid"] == "Queiroz"
+        assert d["ssid"] == "MockNet-5G"
         assert d["signal_dbm"] == -42
         assert d["band"] == "5 GHz"
-        assert d["ip4"] == "10.0.0.145/24"
+        assert d["ip4"] == "192.0.2.10/24"
         assert d["health"] == "ok"
     finally:
         app.dependency_overrides.clear()

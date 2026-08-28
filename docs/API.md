@@ -26,7 +26,7 @@ Authenticated echo channel proving a live connection.
 Current adapter snapshot.
 ```json
 { "usb_present": true, "driver": "rtw88_8812au", "interface": "wlan0",
-  "mode": "MANAGED", "operstate": "up", "ssid": "Queiroz", "ip4": "10.0.0.145/24",
+  "mode": "MANAGED", "operstate": "up", "ssid": "MockNet-5G", "ip4": "192.0.2.10/24",
   "signal_dbm": -22, "tx_bitrate_mbps": 175.5, "freq_mhz": 5785, "band": "5 GHz",
   "health": "ok", "health_detail": null }
 ```

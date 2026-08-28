@@ -5,17 +5,17 @@ from app.services.capture import parse_aircrack_handshakes
 
 AIRCRACK_OUT = """Reading packets, please wait...
    #  BSSID              ESSID                     Encryption
-   1  96:04:E3:EC:AB:5A  Queiroz                   WPA (1 handshake)
-   2  58:CB:52:DE:18:41  High-Five Wifi            WPA (0 handshake)
+   1  02:00:00:00:00:01  MockNet-5G                   WPA (1 handshake)
+   2  02:00:00:00:00:02  TestAP-2G            WPA (0 handshake)
 """
 
 AIRCRACK_PMKID = """
-   1  96:04:E3:EC:AB:5A  Queiroz                   WPA (1 handshake, with PMKID)
+   1  02:00:00:00:00:01  MockNet-5G                   WPA (1 handshake, with PMKID)
 """
 
 
 def test_parse_handshake():
-    flags = parse_aircrack_handshakes(AIRCRACK_OUT, "96:04:E3:EC:AB:5A")
+    flags = parse_aircrack_handshakes(AIRCRACK_OUT, "02:00:00:00:00:01")
     assert flags["handshake"] is True
     assert flags["pmkid"] is False
 
@@ -28,7 +28,7 @@ def test_parse_pmkid():
 
 def test_parse_scoped_to_target():
     # handshake belongs to a different BSSID than the target -> not counted
-    flags = parse_aircrack_handshakes(AIRCRACK_OUT, "58:CB:52:DE:18:41")
+    flags = parse_aircrack_handshakes(AIRCRACK_OUT, "02:00:00:00:00:02")
     assert flags["handshake"] is False
 
 

@@ -10,8 +10,8 @@ const online: Status = {
   interface: "wlan0",
   mode: "MANAGED",
   operstate: "up",
-  ssid: "Queiroz",
-  ip4: "10.0.0.145/24",
+  ssid: "MockNet-5G",
+  ip4: "192.0.2.10/24",
   signal_dbm: -42,
   tx_bitrate_mbps: 585,
   freq_mhz: 5785,
@@ -24,7 +24,7 @@ describe("AdapterStatus", () => {
   it("renders live telemetry", () => {
     render(<AdapterStatus status={online} />);
     expect(screen.getByText("MANAGED")).toBeInTheDocument();
-    expect(screen.getByText("Queiroz")).toBeInTheDocument();
+    expect(screen.getByText("MockNet-5G")).toBeInTheDocument();
     expect(screen.getByText("-42 dBm")).toBeInTheDocument();
     expect(screen.getByText("rtw88_8812au")).toBeInTheDocument();
   });

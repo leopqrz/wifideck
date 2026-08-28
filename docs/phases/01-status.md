@@ -23,7 +23,7 @@
 
 | Check | Result |
 |---|---|
-| `/api/status` matches real adapter (present/driver/mode/ip/signal) | ✅ live: `wlan0 · MANAGED · rtw88_8812au · 10.0.0.145/24 · -22 dBm · 5 GHz` |
+| `/api/status` matches real adapter (present/driver/mode/ip/signal) | ✅ live: `wlan0 · MANAGED · rtw88_8812au · 192.0.2.10/24 · -22 dBm · 5 GHz` |
 | `/ws/status` streams telemetry; pushes on change | ✅ live verified |
 | Detach → `health: disconnected` (≤ one 2s poll) | ✅ logic + unit test (`_FakeRunner`) |
 | Present-but-no-interface → `degraded` | ✅ unit test |

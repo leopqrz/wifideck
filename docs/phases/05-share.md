@@ -12,7 +12,7 @@
   live state (`ip_forward` + `iptables -C`). `parse_default_gateway` + `mac_commands`
   build the copyable macOS route/DNS steps.
 - `routers/share.py` — `GET /api/share`, `POST /api/share {enabled}`.
-- Mock mode toggles an in-memory flag and reports fixture topology (eth0 172.16.91.128).
+- Mock mode toggles an in-memory flag and reports fixture topology (eth0 192.0.2.128).
 
 **Frontend**
 - `useShare` hook (polls status); client `getShare`/`setShare`.
@@ -23,7 +23,7 @@
 
 | Check | Result |
 |---|---|
-| `GET /api/share` reports topology + mac_commands | ✅ live (mock): eth0/wlan0, vm_ip 172.16.91.128 |
+| `GET /api/share` reports topology + mac_commands | ✅ live (mock): eth0/wlan0, vm_ip 192.0.2.128 |
 | `POST /api/share` toggles active on/off | ✅ live (mock) |
 | Gateway parse + mac-command building | ✅ unit tests |
 | Rules added idempotently (`-C` before `-A`) | ✅ (in `_ensure`) |

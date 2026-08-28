@@ -7,10 +7,10 @@ const off: ShareStatus = {
   active: false,
   uplink: "wlan0",
   downlink: "eth0",
-  vm_ip: "172.16.91.128",
-  gateway: "10.0.0.1",
+  vm_ip: "192.0.2.128",
+  gateway: "192.0.2.1",
   mac_commands: [
-    "sudo route -n add -net 0.0.0.0/1 172.16.91.128",
+    "sudo route -n add -net 0.0.0.0/1 192.0.2.128",
     "networksetup -setdnsservers Wi-Fi 1.1.1.1",
   ],
 };
@@ -29,7 +29,7 @@ describe("ShareControl", () => {
     expect(screen.getByText("sharing on")).toBeInTheDocument();
     expect(screen.getByText(/Run on macOS/i)).toBeInTheDocument();
     expect(
-      screen.getByText("sudo route -n add -net 0.0.0.0/1 172.16.91.128"),
+      screen.getByText("sudo route -n add -net 0.0.0.0/1 192.0.2.128"),
     ).toBeInTheDocument();
   });
 });

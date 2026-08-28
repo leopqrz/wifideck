@@ -5,13 +5,13 @@ from app.services.share import mac_commands, parse_default_gateway
 
 
 def test_parse_default_gateway():
-    assert parse_default_gateway("default via 10.0.0.1 dev wlan0 metric 600") == "10.0.0.1"
+    assert parse_default_gateway("default via 192.0.2.1 dev wlan0 metric 600") == "192.0.2.1"
     assert parse_default_gateway("no default here") is None
 
 
 def test_mac_commands_use_vm_ip():
-    cmds = mac_commands("172.16.91.128")
-    assert any("172.16.91.128" in c for c in cmds)
+    cmds = mac_commands("192.0.2.128")
+    assert any("192.0.2.128" in c for c in cmds)
     assert any("setdnsservers" in c for c in cmds)
 
 
@@ -21,8 +21,8 @@ def test_share_status_reports_topology(client, auth_headers):
     d = r.json()
     assert d["downlink"] == "eth0"
     assert d["uplink"] == "wlan0"
-    assert d["vm_ip"] == "172.16.91.128"
-    assert any("172.16.91.128" in c for c in d["mac_commands"])
+    assert d["vm_ip"] == "192.0.2.128"
+    assert any("192.0.2.128" in c for c in d["mac_commands"])
 
 
 def test_share_toggle(client, auth_headers):

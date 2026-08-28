@@ -16,7 +16,7 @@ def test_parse_iw_dev_empty():
 
 def test_parse_iw_link():
     link = parsers.parse_iw_link(IW_LINK)
-    assert link["ssid"] == "Queiroz"
+    assert link["ssid"] == "MockNet-5G"
     assert link["signal_dbm"] == -42
     assert link["tx_bitrate_mbps"] == 585.0
     assert link["freq_mhz"] == 5785
@@ -27,7 +27,7 @@ def test_parse_iw_link_not_connected():
 
 
 def test_parse_ip_addr():
-    assert parsers.parse_ip_addr(IP_ADDR) == "10.0.0.145/24"
+    assert parsers.parse_ip_addr(IP_ADDR) == "192.0.2.10/24"
     assert parsers.parse_ip_addr("no address here") is None
 
 
