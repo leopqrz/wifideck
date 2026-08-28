@@ -49,10 +49,19 @@ every 5s. Source auto-selected from the current mode (nmcli in MANAGED, airodump
 in MONITOR). `Network`: bssid, ssid, band, channel, signal_pct, signal_dbm,
 security[], is_current, clients.
 
+### Capture  *(Phase 4)*
+- `POST /api/capture` — start. Body `{ "channel": <1-196|null>, "bssid": <str|null> }`.
+  `409` if one is running or not in MONITOR mode.
+- `POST /api/capture/{id}/stop` — stop a session.
+- `GET /api/capture` — list sessions.
+- `GET /api/capture/{id}` — session detail incl. live `networks[]`.
+- `GET /api/capture/{id}/pcap` — download the `.cap` (`404` until data is written).
+- `WS /ws/capture` — streams `{ "type": "capture", "data": <CaptureDetail|null> }`
+  every 2s for the active session (ap/client counts, handshake/PMKID flags).
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |
 |---|---|---|
-| 4 | `POST /api/capture`, `GET /api/capture/{id}.pcap` | capture control + export |
 | 5 | `POST /api/share` | internet sharing on/off |
 | 7 | `POST /api/audit/*` | gated active modules |

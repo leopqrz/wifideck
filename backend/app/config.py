@@ -31,6 +31,9 @@ class Settings:
     # so the UI and tests run with no ALFA attached.
     mock: bool = _bool("WIFIDECK_MOCK", False)
 
+    # Where capture sessions (csv + pcap) are written.
+    capture_dir: str = os.environ.get("WIFIDECK_CAPTURE_DIR", "/tmp/wifideck/sessions")
+
     version: str = "0.1.0"
 
 

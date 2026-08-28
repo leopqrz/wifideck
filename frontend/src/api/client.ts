@@ -44,6 +44,7 @@ function wsUrl(path: string): string {
 
 export const statusUrl = () => wsUrl("/ws/status");
 export const scanUrl = () => wsUrl("/ws/scan");
+export const captureUrl = () => wsUrl("/ws/capture");
 
 export interface Network {
   bssid: string | null;
@@ -55,6 +56,70 @@ export interface Network {
   security: string[];
   is_current: boolean;
   clients: number;
+}
+
+export interface CaptureSession {
+  id: string;
+  started: string;
+  stopped: string | null;
+  running: boolean;
+  channel: number | null;
+  target_bssid: string | null;
+  handshake: boolean;
+  pmkid: boolean;
+  ap_count: number;
+  client_count: number;
+  pcap_available: boolean;
+}
+
+export interface CaptureDetail extends CaptureSession {
+  networks: Network[];
+}
+
+export async function startCapture(
+  channel?: number | null,
+  bssid?: string | null,
+): Promise<CaptureSession> {
+  const res = await fetch("/api/capture", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ channel: channel ?? null, bssid: bssid ?? null }),
+  });
+  if (!res.ok) {
+    let detail = `capture ${res.status}`;
+    try {
+      detail = (await res.json()).detail ?? detail;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+export async function stopCapture(sid: string): Promise<CaptureSession> {
+  const res = await fetch(`/api/capture/${sid}/stop`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+  if (!res.ok) throw new Error(`stop ${res.status}`);
+  return res.json();
+}
+
+export async function downloadPcap(sid: string): Promise<void> {
+  const res = await fetch(`/api/capture/${sid}/pcap`, {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+  if (!res.ok) throw new Error(`No pcap available yet (${res.status}).`);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${sid}.cap`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export async function setMode(

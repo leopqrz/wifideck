@@ -42,6 +42,18 @@ NMCLI_WIFI = (
 )
 
 
+# A small airodump-ng CSV (one AP with two associated stations).
+AIRODUMP_CSV = """
+BSSID, First time seen, Last time seen, channel, Speed, Privacy, Cipher, Authentication, Power, # beacons, # IV, LAN IP, ID-length, ESSID, Key
+
+96:04:E3:EC:AB:5A, 2026-08-28 03:00:00, 2026-08-28 03:05:00, 157, 866, WPA2, CCMP, PSK, -42, 120, 0, 0. 0. 0. 0, 7, Queiroz,
+
+Station MAC, First time seen, Last time seen, Power, # packets, BSSID, Probed ESSIDs
+AA:BB:CC:DD:EE:FF, 2026-08-28 03:00:00, 2026-08-28 03:05:00, -50, 40, 96:04:E3:EC:AB:5A,
+11:22:33:44:55:66, 2026-08-28 03:00:00, 2026-08-28 03:05:00, -60, 12, 96:04:E3:EC:AB:5A,
+"""
+
+
 def match(args: list[str]) -> tuple[int, str, str]:
     """Return (returncode, stdout, stderr) for a mocked command."""
     cmd = args[0] if args else ""

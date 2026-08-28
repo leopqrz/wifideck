@@ -8,6 +8,7 @@ os.environ["WIFIDECK_TOKEN"] = "test-token"
 os.environ["WIFIDECK_HOST"] = "127.0.0.1"
 # Tests never touch real hardware: mock mode feeds recorded fixtures.
 os.environ["WIFIDECK_MOCK"] = "1"
+os.environ["WIFIDECK_CAPTURE_DIR"] = "/tmp/wifideck-test/sessions"
 
 import pytest
 from fastapi.testclient import TestClient

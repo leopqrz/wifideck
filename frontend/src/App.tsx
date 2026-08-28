@@ -3,14 +3,17 @@ import { HealthBanner } from "./components/HealthBanner";
 import { AdapterStatus } from "./components/AdapterStatus";
 import { ModeControl } from "./components/ModeControl";
 import { NetworkTable } from "./components/NetworkTable";
+import { CaptureControl } from "./components/CaptureControl";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
 import { useScan } from "./hooks/useScan";
+import { useCapture } from "./hooks/useCapture";
 
 export default function App() {
   const health = useHealth();
   const { ws, status } = useStatus();
   const scan = useScan();
+  const capture = useCapture();
   const backendOnline = health.status === "online";
 
   return (
@@ -50,6 +53,10 @@ export default function App() {
             </p>
           </div>
           <ModeControl status={status} />
+        </section>
+
+        <section className="pb-8">
+          <CaptureControl status={status} session={capture.session} />
         </section>
 
         <section className="pb-16">

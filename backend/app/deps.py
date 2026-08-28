@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from .config import settings
+from .services.capture import CaptureService
 from .services.mode import ModeService
 from .services.runner import CommandRunner
 from .services.status import StatusService
@@ -21,3 +22,15 @@ _mode_service = ModeService(
 
 def get_mode_service() -> ModeService:
     return _mode_service
+
+
+# CaptureService holds active sessions/subprocesses, so it's a shared singleton.
+_capture_service = CaptureService(
+    runner=CommandRunner(mock=settings.mock),
+    base_dir=settings.capture_dir,
+    mock=settings.mock,
+)
+
+
+def get_capture_service() -> CaptureService:
+    return _capture_service

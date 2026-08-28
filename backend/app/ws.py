@@ -12,6 +12,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from .auth import valid_ws_token
 from .config import settings
+from .deps import get_capture_service
 from .services.runner import CommandRunner
 from .services.scan import AirodumpScanner, ScanService
 from .services.status import StatusService
@@ -20,6 +21,7 @@ router = APIRouter()
 
 STATUS_POLL_SECONDS = 2.0
 SCAN_POLL_SECONDS = 5.0
+CAPTURE_POLL_SECONDS = 2.0
 
 
 @router.websocket("/ws/echo")
@@ -97,3 +99,25 @@ async def scan_stream(websocket: WebSocket, token: str = "") -> None:
     finally:
         if airodump is not None:
             await airodump.stop()
+
+
+@router.websocket("/ws/capture")
+async def capture_stream(websocket: WebSocket, token: str = "") -> None:
+    """Stream the active capture session's live detail (or null if none)."""
+    if not valid_ws_token(token):
+        await websocket.close(code=1008)
+        return
+
+    await websocket.accept()
+    svc = get_capture_service()
+    try:
+        while True:
+            active = svc.active
+            data = None
+            if active is not None:
+                detail = await svc.detail(active.id)
+                data = detail.model_dump(mode="json") if detail else None
+            await websocket.send_json({"type": "capture", "data": data})
+            await asyncio.sleep(CAPTURE_POLL_SECONDS)
+    except WebSocketDisconnect:
+        return

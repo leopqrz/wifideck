@@ -23,7 +23,7 @@ export function TopRail({
           WIFI<span className="text-accent">DECK</span>
         </span>
         <span className="hidden font-mono text-[12px] text-faint sm:inline">
-          v0.1.0 · phase 03
+          v0.1.0 · phase 04
         </span>
         <div className="flex-1" />
         {adapterMode !== undefined && (
