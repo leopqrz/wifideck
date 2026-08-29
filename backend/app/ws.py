@@ -12,7 +12,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from .auth import valid_ws_token
 from .config import settings
-from .deps import get_capture_service, get_watchdog_service
+from .deps import get_capture_service, get_flow_service, get_watchdog_service
 from .services.runner import CommandRunner
 from .services.scan import AirodumpScanner, ScanService
 from .services.status import StatusService
@@ -139,5 +139,24 @@ async def watchdog_stream(websocket: WebSocket, token: str = "") -> None:
                 {"type": "watchdog", "data": svc.status_info().model_dump(mode="json")}
             )
             await asyncio.sleep(WATCHDOG_POLL_SECONDS)
+    except WebSocketDisconnect:
+        return
+
+
+@router.websocket("/ws/flow")
+async def flow_stream(websocket: WebSocket, token: str = "") -> None:
+    """Stream the guided capture flow's live step-by-step progress."""
+    if not valid_ws_token(token):
+        await websocket.close(code=1008)
+        return
+
+    await websocket.accept()
+    svc = get_flow_service()
+    try:
+        while True:
+            await websocket.send_json(
+                {"type": "flow", "data": svc.status_info().model_dump(mode="json")}
+            )
+            await asyncio.sleep(1.5)
     except WebSocketDisconnect:
         return

@@ -65,6 +65,57 @@ export const statusUrl = () => wsUrl("/ws/status");
 export const scanUrl = () => wsUrl("/ws/scan");
 export const captureUrl = () => wsUrl("/ws/capture");
 export const watchdogUrl = () => wsUrl("/ws/watchdog");
+export const flowUrl = () => wsUrl("/ws/flow");
+
+export interface FlowStep {
+  name: string;
+  detail: string;
+  timestamp: string;
+  done: boolean;
+}
+
+export interface FlowStatus {
+  state: string;
+  target_bssid: string | null;
+  channel: number | null;
+  session_id: string | null;
+  handshake: boolean;
+  message: string | null;
+  steps: FlowStep[];
+}
+
+export async function startFlow(
+  bssid: string,
+  channel: number,
+  authorized: boolean,
+  count = 8,
+  timeout = 60,
+): Promise<FlowStatus> {
+  const res = await fetch("/api/flow", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ bssid, channel, authorized, count, timeout }),
+  });
+  if (!res.ok) {
+    let d = `flow ${res.status}`;
+    try {
+      d = (await res.json()).detail ?? d;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(d);
+  }
+  return res.json();
+}
+
+export async function stopFlow(): Promise<FlowStatus> {
+  const res = await fetch("/api/flow/stop", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) throw new Error(`stop ${res.status}`);
+  return res.json();
+}
 
 export interface WatchdogEvent {
   timestamp: string;

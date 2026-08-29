@@ -9,6 +9,7 @@ import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
 import { WatchdogPanel } from "./components/WatchdogPanel";
 import { ActivePanel } from "./components/ActivePanel";
+import { FlowPanel } from "./components/FlowPanel";
 import { TokenGate } from "./components/TokenGate";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
@@ -19,6 +20,7 @@ import { useDriver } from "./hooks/useDriver";
 import { useHistory } from "./hooks/useHistory";
 import { useActiveModules } from "./hooks/useActiveModules";
 import { useWatchdog } from "./hooks/useWatchdog";
+import { useFlow } from "./hooks/useFlow";
 
 export default function App() {
   const health = useHealth();
@@ -30,6 +32,7 @@ export default function App() {
   const history = useHistory(status);
   const active = useActiveModules();
   const { watchdog } = useWatchdog();
+  const { flow } = useFlow();
   const backendOnline = health.status === "online";
   const needsToken = health.status === "error" && health.unauthorized;
 
@@ -103,6 +106,10 @@ export default function App() {
             audit={active.audit}
             onChange={active.refresh}
           />
+        </section>
+
+        <section className="pb-16">
+          <FlowPanel scope={active.scope} flow={flow} />
         </section>
       </main>
 

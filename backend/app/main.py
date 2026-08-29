@@ -15,7 +15,17 @@ from fastapi.staticfiles import StaticFiles
 from . import ws
 from .config import settings
 from .deps import get_watchdog_service
-from .routers import active, capture, driver, health, mode, share, status, watchdog
+from .routers import (
+    active,
+    capture,
+    driver,
+    flow,
+    health,
+    mode,
+    share,
+    status,
+    watchdog,
+)
 
 
 @asynccontextmanager
@@ -49,6 +59,7 @@ app.include_router(share.router)
 app.include_router(driver.router)
 app.include_router(active.router)
 app.include_router(watchdog.router)
+app.include_router(flow.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

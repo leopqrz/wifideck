@@ -6,6 +6,7 @@ from .services.active import ActiveService
 from .services.audit import AuditLog
 from .services.capture import CaptureService
 from .services.driver import DriverService
+from .services.flow import CaptureFlowService
 from .services.mode import ModeService
 from .services.runner import CommandRunner
 from .services.scope import ScopeList
@@ -97,3 +98,27 @@ def get_active_service() -> ActiveService:
         enabled=settings.enable_active,
         mock=settings.mock,
     )
+
+
+# Guided capture flow orchestrates the shared mode/capture services + a gated
+# ActiveService; single shared instance (it holds one running flow at a time).
+_flow_service = CaptureFlowService(
+    mode=_mode_service,
+    capture=_capture_service,
+    active=ActiveService(
+        runner=CommandRunner(mock=settings.mock),
+        scope=_scope_list,
+        audit=_audit_log,
+        status=StatusService(CommandRunner(mock=settings.mock)),
+        enabled=settings.enable_active,
+        mock=settings.mock,
+    ),
+    scope=_scope_list,
+    status=StatusService(CommandRunner(mock=settings.mock)),
+    enabled=settings.enable_active,
+    mock=settings.mock,
+)
+
+
+def get_flow_service() -> CaptureFlowService:
+    return _flow_service

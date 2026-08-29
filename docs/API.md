@@ -84,6 +84,14 @@ gated by an in-scope allowlist + per-action authorization. Every attempt is audi
 - `POST /api/watchdog {enabled}` — start/stop the watchdog loop.
 - `WS /ws/watchdog` — streams `{ "type": "watchdog", "data": <WatchdogStatus> }` every 2s (health + recovery events). Recovery escalates: driver reload → USB reset → reconnect; a full off-bus drop is reported as a host (passthrough) issue.
 
+### Guided capture flow  *(Phase 10)*
+Orchestrates monitor → capture → deauth → handshake-wait → cleanup. Enforces the
+Phase 7 guardrails up front (active enabled + authorized + target in scope).
+- `POST /api/flow {bssid, channel, authorized, count?, timeout?}` — start; `403` if refused (disabled/unauthorized/out-of-scope), `409` if one is running.
+- `POST /api/flow/stop` — stop the running flow.
+- `GET /api/flow` — current status.
+- `WS /ws/flow` — streams `{ "type": "flow", "data": <FlowStatus> }` (state + per-step progress + handshake).
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |
