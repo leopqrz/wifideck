@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ModeControl } from "../components/ModeControl";
 import type { Status } from "../api/client";
@@ -26,12 +26,12 @@ describe("ModeControl", () => {
     expect(screen.getByRole("button", { name: "MONITOR" })).toBeEnabled();
   });
 
-  it("asks for confirmation before switching to MONITOR", () => {
+  it("switches MONITOR in one click — no confirm gate", () => {
     render(<ModeControl status={base} />);
-    fireEvent.click(screen.getByRole("button", { name: "MONITOR" }));
+    // MONITOR is directly clickable (no separate confirm step)
+    expect(screen.getByRole("button", { name: "MONITOR" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /Switch to MONITOR/i })).not.toBeInTheDocument();
+    // the warning is now a static note, not a blocking dialog
     expect(screen.getByText(/drops the Wi-Fi link/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Switch to MONITOR/i }),
-    ).toBeInTheDocument();
   });
 });

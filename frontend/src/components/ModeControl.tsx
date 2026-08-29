@@ -3,11 +3,11 @@ import { setMode, type Status } from "../api/client";
 
 type Target = "managed" | "monitor";
 
-// Interactive MANAGED ⇄ MONITOR switch. Switching to monitor is confirmed inline
-// (it drops the Wi-Fi link); the status stream confirms the resulting mode.
+// One-click MANAGED ⇄ MONITOR switch. Both are direct (no confirm) so you can
+// flip between them fast; MONITOR drops the Wi-Fi link. The status stream
+// confirms the resulting mode.
 export function ModeControl({ status }: { status: Status | null }) {
   const current = status?.mode ?? null; // "MANAGED" | "MONITOR" | null
-  const [confirm, setConfirm] = useState<Target | null>(null);
   const [pending, setPending] = useState<Target | null>(null);
   const [channel, setChannel] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,6 @@ export function ModeControl({ status }: { status: Status | null }) {
   const disabled = pending !== null || status === null;
 
   async function doSwitch(target: Target) {
-    setConfirm(null);
     setError(null);
     setPending(target);
     try {
@@ -33,8 +32,7 @@ export function ModeControl({ status }: { status: Status | null }) {
 
   function onClick(target: Target) {
     if (target === current || disabled) return;
-    if (target === "monitor") setConfirm("monitor");
-    else doSwitch("managed");
+    doSwitch(target);
   }
 
   return (
@@ -81,27 +79,9 @@ export function ModeControl({ status }: { status: Status | null }) {
         </label>
       </div>
 
-      {confirm === "monitor" && (
-        <div className="mt-4 rounded-lg border border-warn/50 bg-warn/10 p-3">
-          <p className="font-mono text-xs text-warn">
-            MONITOR mode drops the Wi-Fi link and internet on this adapter. Continue?
-          </p>
-          <div className="mt-3 flex gap-2">
-            <button
-              onClick={() => doSwitch("monitor")}
-              className="rounded bg-warn px-3 py-1 font-mono text-xs font-semibold text-bg"
-            >
-              Switch to MONITOR{channel ? ` · ch ${channel}` : ""}
-            </button>
-            <button
-              onClick={() => setConfirm(null)}
-              className="rounded border border-line px-3 py-1 font-mono text-xs text-muted hover:text-text"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+      <p className="mt-3 font-mono text-[11px] text-faint">
+        MONITOR drops the Wi-Fi link &amp; internet on this adapter.
+      </p>
 
       {error && (
         <p className="mt-3 font-mono text-xs text-crit">
