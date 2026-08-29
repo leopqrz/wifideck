@@ -212,6 +212,32 @@ async function apiGet<T>(path: string): Promise<T> {
   return res.json();
 }
 
+// ---- client connection management ----
+export const getSaved = () => apiGet<string[]>("/api/saved");
+
+async function connectAction(path: string, body?: object): Promise<{ ok: boolean; message: string }> {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    let d = `${path} ${res.status}`;
+    try {
+      d = (await res.json()).detail ?? d;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(d);
+  }
+  return res.json();
+}
+
+export const connectWifi = (ssid: string, password?: string | null, hidden = false) =>
+  connectAction("/api/connect", { ssid, password: password || null, hidden });
+export const disconnectWifi = () => connectAction("/api/disconnect");
+export const forgetWifi = (ssid: string) => connectAction("/api/forget", { ssid });
+
 export const getScope = () => apiGet<ScopeTarget[]>("/api/scope");
 export const getAudit = () => apiGet<AuditEntry[]>("/api/audit");
 export const getActive = () => apiGet<{ enabled: boolean }>("/api/active");

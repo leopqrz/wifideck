@@ -30,6 +30,12 @@ describe("NetworkTable", () => {
     expect(screen.getByText("<hidden>")).toBeInTheDocument();
   });
 
+  it("offers Disconnect on the current network and Connect on others", () => {
+    render(<NetworkTable networks={data} source="managed" />);
+    expect(screen.getByRole("button", { name: "Disconnect" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Connect/ }).length).toBeGreaterThan(0);
+  });
+
   it("filters by SSID text", () => {
     render(<NetworkTable networks={data} source="managed" />);
     fireEvent.change(screen.getByPlaceholderText(/filter ssid/i), {

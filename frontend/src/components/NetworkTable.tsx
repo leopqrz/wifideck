@@ -1,5 +1,11 @@
-import { useMemo, useState } from "react";
-import type { Network } from "../api/client";
+import { useEffect, useMemo, useState } from "react";
+import {
+  connectWifi,
+  disconnectWifi,
+  forgetWifi,
+  getSaved,
+  type Network,
+} from "../api/client";
 
 type SortKey = "signal" | "ssid" | "channel";
 
@@ -57,6 +63,12 @@ export function NetworkTable({
   const [band, setBand] = useState<"all" | "2.4 GHz" | "5 GHz">("all");
   const [sortKey, setSortKey] = useState<SortKey>("signal");
   const [asc, setAsc] = useState(false);
+  const [saved, setSaved] = useState<Set<string>>(new Set());
+
+  const refreshSaved = () => getSaved().then((s) => setSaved(new Set(s))).catch(() => {});
+  useEffect(() => {
+    refreshSaved();
+  }, []);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -124,6 +136,7 @@ export function NetworkTable({
               <th className="px-3 py-2 font-normal">Band</th>
               <th className="px-3 py-2 font-normal">Security</th>
               <th className="px-3 py-2 font-normal">BSSID</th>
+              <th className="px-3 py-2 font-normal"></th>
             </tr>
           </thead>
           <tbody className="font-mono text-[13px]">
@@ -153,11 +166,18 @@ export function NetworkTable({
                   <SecurityBadges security={n.security} />
                 </td>
                 <td className="px-3 py-1.5 text-faint">{n.bssid ?? "—"}</td>
+                <td className="px-3 py-1.5 text-right">
+                  <ConnectCell
+                    network={n}
+                    isSaved={n.ssid ? saved.has(n.ssid) : false}
+                    onChanged={refreshSaved}
+                  />
+                </td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-8 text-center font-body text-sm text-muted">
+                <td colSpan={8} className="px-3 py-8 text-center font-body text-sm text-muted">
                   No networks{query || band !== "all" ? " match the filter" : " yet"}.
                 </td>
               </tr>
@@ -176,5 +196,102 @@ function Th({ children, onClick }: { children: React.ReactNode; onClick: () => v
         {children}
       </button>
     </th>
+  );
+}
+
+function ConnectCell({
+  network,
+  isSaved,
+  onChanged,
+}: {
+  network: Network;
+  isSaved: boolean;
+  onChanged: () => void;
+}) {
+  const [mode, setMode] = useState<"idle" | "password">("idle");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const ssid = network.ssid;
+  const isOpen = network.security.length === 0;
+
+  async function run(fn: () => Promise<unknown>) {
+    setErr(null);
+    setBusy(true);
+    try {
+      await fn();
+      onChanged();
+      setMode("idle");
+      setPassword("");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (network.is_current) {
+    return (
+      <button
+        disabled={busy}
+        onClick={() => run(disconnectWifi)}
+        className="rounded border border-line px-2 py-0.5 font-mono text-[11px] text-text hover:border-crit disabled:opacity-50"
+      >
+        Disconnect
+      </button>
+    );
+  }
+  if (!ssid) return <span className="font-mono text-[11px] text-faint">—</span>;
+
+  if (mode === "password") {
+    return (
+      <span className="inline-flex items-center gap-1">
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && password && run(() => connectWifi(ssid, password))}
+          placeholder="password"
+          autoFocus
+          className="w-28 rounded border border-line bg-panel-2 px-2 py-0.5 font-mono text-[11px] text-text outline-none focus:border-accent"
+        />
+        <button
+          disabled={busy || !password}
+          onClick={() => run(() => connectWifi(ssid, password))}
+          className="rounded bg-accent px-2 py-0.5 font-mono text-[11px] text-bg disabled:opacity-40"
+        >
+          →
+        </button>
+        <button onClick={() => setMode("idle")} className="px-1 font-mono text-[11px] text-faint hover:text-text">
+          ✕
+        </button>
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-2">
+      {isSaved && (
+        <button
+          onClick={() => run(() => forgetWifi(ssid))}
+          title="forget saved network"
+          className="font-mono text-[10px] text-faint hover:text-crit"
+        >
+          forget
+        </button>
+      )}
+      <button
+        disabled={busy}
+        onClick={() => (isOpen || isSaved ? run(() => connectWifi(ssid, null)) : setMode("password"))}
+        className="rounded border border-line px-2 py-0.5 font-mono text-[11px] text-text hover:border-accent disabled:opacity-50"
+      >
+        {busy ? "…" : isSaved ? "Connect ★" : "Connect"}
+      </button>
+      {err && (
+        <span title={err} className="font-mono text-[10px] text-crit">
+          failed
+        </span>
+      )}
+    </span>
   );
 }

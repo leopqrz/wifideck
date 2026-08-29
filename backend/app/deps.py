@@ -5,6 +5,7 @@ from .config import settings
 from .services.active import ActiveService
 from .services.audit import AuditLog
 from .services.capture import CaptureService
+from .services.connect import ConnectService
 from .services.crack import CrackService
 from .services.driver import DriverService
 from .services.flow import CaptureFlowService
@@ -20,6 +21,14 @@ from .services.wids import WidsService
 
 def get_status_service() -> StatusService:
     return StatusService(CommandRunner(mock=settings.mock))
+
+
+def get_connect_service() -> ConnectService:
+    return ConnectService(
+        CommandRunner(mock=settings.mock),
+        StatusService(CommandRunner(mock=settings.mock)),
+        settings.mock,
+    )
 
 
 def get_driver_service() -> DriverService:

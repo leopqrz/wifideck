@@ -32,6 +32,13 @@ Current adapter snapshot.
 ```
 `health` ∈ `ok` | `disconnected` | `degraded`.
 
+### Client connections  *(Phase 13)*
+Join/leave/forget Wi-Fi via NetworkManager (which persists the profile + password).
+- `POST /api/connect {ssid, password?, hidden?}` — join (`400` on failure / MONITOR mode).
+- `POST /api/disconnect` — disconnect the interface.
+- `POST /api/forget {ssid}` — delete the saved profile (and stored password).
+- `GET /api/saved` — SSIDs NetworkManager already has saved.
+
 ### `WS /ws/status`  *(Phase 1)*
 Pushes `{ "type": "status", "data": <Status> }` on connect and whenever the
 snapshot changes (polled every 2s).

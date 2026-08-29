@@ -9,6 +9,9 @@ Effort key: **S** ≈ a session, **M** ≈ a couple sessions, **L** ≈ larger.
 
 ---
 
+> Shipped since this doc was written: **click-to-connect** (join/leave/forget Wi-Fi
+> from the Networks table) landed in **v2.5** — see `docs/phases/13-connect.md`.
+
 ## Track A — Capability (do more with the radio)
 
 ### Phase 13 · Multi-adapter support  — *M · platform*

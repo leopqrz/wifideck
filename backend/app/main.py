@@ -18,6 +18,7 @@ from .deps import get_watchdog_service, get_wids_service
 from .routers import (
     active,
     capture,
+    connect,
     crack,
     driver,
     flow,
@@ -59,6 +60,7 @@ app.add_middleware(
 
 app.include_router(health.router)
 app.include_router(status.router)
+app.include_router(connect.router)
 app.include_router(mode.router)
 app.include_router(capture.router)
 app.include_router(share.router)

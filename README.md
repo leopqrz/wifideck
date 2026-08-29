@@ -6,7 +6,7 @@ handshakes, share internet to the host, watch signal/throughput charts, and run
 authorization-gated active tests — all from a fast, dark, live dashboard in your
 browser. Binds to `127.0.0.1` only, token-authed.
 
-**Status: v2.4** — phases 0–12 complete. Full plan: [docs/PLAN.md](docs/PLAN.md).
+**Status: v2.5** — phases 0–13 complete. Full plan: [docs/PLAN.md](docs/PLAN.md).
 
 ![WiFiDeck dashboard](docs/screenshot.png)
 
@@ -17,6 +17,7 @@ browser. Binds to `127.0.0.1` only, token-authed.
 | **Status** | live USB/driver/mode/link/signal + health (disconnect & `-71` detection) |
 | **Mode** | MANAGED ⇄ MONITOR toggle with a serialized state machine |
 | **Scan** | live network table (nmcli in managed, airodump in monitor), sort/filter |
+| **Connect** | click any SSID to join/leave; NetworkManager saves the password |
 | **Capture** | airodump sessions, handshake/PMKID detection, pcap export |
 | **Share** | NAT the ALFA uplink to the host, with copyable macOS route/DNS commands |
 | **Charts** | signal & TX-rate sparklines; driver/DKMS panel with switch hints |
