@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from app.services import parsers
-from app.services.fixtures import IW_DEV, IW_LINK, IP_ADDR
+from app.services.fixtures import IP_ADDR, IW_DEV, IW_LINK
 
 
 def test_parse_iw_dev():

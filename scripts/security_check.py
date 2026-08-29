@@ -11,11 +11,11 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "backend"))
 
-from app.auth import require_token  # noqa: E402
-from app.config import settings  # noqa: E402
-from app.main import app  # noqa: E402
-from fastapi.routing import APIRoute  # noqa: E402
-from starlette.middleware.cors import CORSMiddleware  # noqa: E402
+from app.auth import require_token
+from app.config import settings
+from app.main import app
+from fastapi.routing import APIRoute
+from starlette.middleware.cors import CORSMiddleware
 
 results: list[tuple[bool, str]] = []
 
@@ -44,9 +44,12 @@ check(settings.enable_active is False, f"active modules OFF by default (enable_a
 # 3. every /api route requires the token
 unprotected = []
 for route in app.routes:
-    if isinstance(route, APIRoute) and route.path.startswith("/api"):
-        if require_token not in deps_of(route):
-            unprotected.append(f"{sorted(route.methods)} {route.path}")
+    if (
+        isinstance(route, APIRoute)
+        and route.path.startswith("/api")
+        and require_token not in deps_of(route)
+    ):
+        unprotected.append(f"{sorted(route.methods)} {route.path}")
 check(not unprotected, f"every /api route requires token ({len(unprotected)} unprotected: {unprotected})")
 
 # 4. CORS restricted to localhost dev origins

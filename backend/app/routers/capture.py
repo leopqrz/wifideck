@@ -39,9 +39,9 @@ async def start_capture(
     try:
         return await svc.start(iface, req.channel, req.bssid)
     except CaptureBusy:
-        raise HTTPException(status_code=409, detail="A capture is already running.")
+        raise HTTPException(status_code=409, detail="A capture is already running.") from None
     except CaptureError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/api/capture/{sid}/stop", response_model=CaptureSession)
@@ -53,7 +53,7 @@ async def stop_capture(
     try:
         return await svc.stop(sid)
     except CaptureError:
-        raise HTTPException(status_code=404, detail="Unknown session.")
+        raise HTTPException(status_code=404, detail="Unknown session.") from None
 
 
 @router.get("/api/capture", response_model=list[CaptureSession])

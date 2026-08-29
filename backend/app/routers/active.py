@@ -43,7 +43,7 @@ async def add_scope(
     try:
         target = scope.add(req.bssid, req.ssid, req.note)
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     audit.record("scope.add", "ok", target_bssid=target.bssid, target_ssid=target.ssid)
     return target
 
@@ -93,12 +93,12 @@ async def deauth(
     try:
         return await svc.deauth(req.bssid, req.client, req.count, req.authorized)
     except ActiveDisabled as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
     except NotAuthorized as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
     except NotInScope as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
     except ModeRequired as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
     except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

@@ -1,0 +1,16 @@
+# Lint config — a pragmatic baseline: pycodestyle errors, pyflakes, import
+# sorting, and bugbear (minus the FastAPI false positive).
+target-version = "py311"
+line-length = 100
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]
+# B008: calling Depends()/Query()/etc. in argument defaults is the FastAPI idiom.
+ignore = ["B008"]
+
+[lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.Path"]
+
+[lint.per-file-ignores]
+# Tests set WIFIDECK_* env vars before importing the app on purpose.
+"tests/*" = ["E402"]

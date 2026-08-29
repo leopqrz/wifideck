@@ -28,6 +28,6 @@ async def set_mode(
     try:
         return await svc.set_mode(req.mode, req.channel)
     except ModeBusy:
-        raise HTTPException(status_code=409, detail="A mode switch is already in progress.")
+        raise HTTPException(status_code=409, detail="A mode switch is already in progress.") from None
     except ModeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

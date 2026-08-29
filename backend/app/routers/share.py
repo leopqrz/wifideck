@@ -33,4 +33,4 @@ async def set_share(
     try:
         return await svc.enable() if req.enabled else await svc.disable()
     except ShareError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

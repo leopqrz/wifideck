@@ -8,6 +8,8 @@ browser. Binds to `127.0.0.1` only, token-authed.
 
 **Status: v2.0** — phases 0–8 complete. Full plan: [docs/PLAN.md](docs/PLAN.md).
 
+![WiFiDeck dashboard](docs/screenshot.png)
+
 ## Features
 
 | | |
@@ -68,3 +70,7 @@ python3 scripts/security_check.py           # 6 security invariants
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/API.md](docs/API.md) · [docs/SECURITY.md](docs/SECURITY.md)
 - [docs/phases/](docs/phases/) — per-phase build notes + acceptance results
 - CLI counterpart the logic came from: `../alfa-tools`
+
+## License
+
+MIT — see [LICENSE](LICENSE).
