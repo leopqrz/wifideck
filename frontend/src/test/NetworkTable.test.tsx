@@ -36,6 +36,19 @@ describe("NetworkTable", () => {
     expect(screen.getAllByRole("button", { name: /^Connect/ }).length).toBeGreaterThan(0);
   });
 
+  it("keeps only one password box open at a time", () => {
+    const two: Network[] = [
+      net({ ssid: "NetA", bssid: "AA:AA:AA:AA:AA:01", security: ["WPA2"] }),
+      net({ ssid: "NetB", bssid: "AA:AA:AA:AA:AA:02", security: ["WPA2"] }),
+    ];
+    render(<NetworkTable networks={two} source="managed" />);
+    fireEvent.click(screen.getAllByRole("button", { name: "Connect" })[0]);
+    expect(screen.getAllByPlaceholderText("password")).toHaveLength(1);
+    // open the other one — the first must collapse back
+    fireEvent.click(screen.getByRole("button", { name: "Connect" }));
+    expect(screen.getAllByPlaceholderText("password")).toHaveLength(1);
+  });
+
   it("filters by SSID text", () => {
     render(<NetworkTable networks={data} source="managed" />);
     fireEvent.change(screen.getByPlaceholderText(/filter ssid/i), {

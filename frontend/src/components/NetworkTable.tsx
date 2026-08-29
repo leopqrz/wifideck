@@ -64,6 +64,7 @@ export function NetworkTable({
   const [sortKey, setSortKey] = useState<SortKey>("signal");
   const [asc, setAsc] = useState(false);
   const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [connectRow, setConnectRow] = useState<string | null>(null); // only one password box at a time
 
   const refreshSaved = () => getSaved().then((s) => setSaved(new Set(s))).catch(() => {});
   useEffect(() => {
@@ -173,6 +174,9 @@ export function NetworkTable({
                   <ConnectCell
                     network={n}
                     isSaved={n.ssid ? saved.has(n.ssid) : false}
+                    expanded={connectRow === `${n.bssid ?? n.ssid ?? "net"}-${i}`}
+                    onExpand={() => setConnectRow(`${n.bssid ?? n.ssid ?? "net"}-${i}`)}
+                    onCollapse={() => setConnectRow(null)}
                     onChanged={refreshSaved}
                   />
                 </td>
@@ -205,18 +209,31 @@ function Th({ children, onClick }: { children: React.ReactNode; onClick: () => v
 function ConnectCell({
   network,
   isSaved,
+  expanded,
+  onExpand,
+  onCollapse,
   onChanged,
 }: {
   network: Network;
   isSaved: boolean;
+  expanded: boolean;
+  onExpand: () => void;
+  onCollapse: () => void;
   onChanged: () => void;
 }) {
-  const [mode, setMode] = useState<"idle" | "password">("idle");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const ssid = network.ssid;
   const isOpen = network.security.length === 0;
+
+  // when this row is no longer the expanded one, clear its box
+  useEffect(() => {
+    if (!expanded) {
+      setPassword("");
+      setErr(null);
+    }
+  }, [expanded]);
 
   async function run(fn: () => Promise<unknown>) {
     setErr(null);
@@ -224,7 +241,7 @@ function ConnectCell({
     try {
       await fn();
       onChanged();
-      setMode("idle");
+      onCollapse();
       setPassword("");
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -246,7 +263,7 @@ function ConnectCell({
   }
   if (!ssid) return <span className="font-mono text-[11px] text-faint">—</span>;
 
-  if (mode === "password") {
+  if (expanded) {
     return (
       <span className="inline-flex items-center gap-1">
         <input
@@ -265,7 +282,7 @@ function ConnectCell({
         >
           →
         </button>
-        <button onClick={() => setMode("idle")} className="px-1 font-mono text-[11px] text-faint hover:text-text">
+        <button onClick={onCollapse} className="px-1 font-mono text-[11px] text-faint hover:text-text">
           ✕
         </button>
       </span>
@@ -285,7 +302,7 @@ function ConnectCell({
       )}
       <button
         disabled={busy}
-        onClick={() => (isOpen || isSaved ? run(() => connectWifi(ssid, null)) : setMode("password"))}
+        onClick={() => (isOpen || isSaved ? run(() => connectWifi(ssid, null)) : onExpand())}
         className="rounded border border-line px-2 py-0.5 font-mono text-[11px] text-text hover:border-accent disabled:opacity-50"
       >
         {busy ? "…" : isSaved ? "Connect ★" : "Connect"}
