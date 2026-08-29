@@ -242,6 +242,11 @@ export const getScope = () => apiGet<ScopeTarget[]>("/api/scope");
 export const getAudit = () => apiGet<AuditEntry[]>("/api/audit");
 export const getActive = () => apiGet<{ enabled: boolean }>("/api/active");
 
+// The remembered network list — the last MANAGED scan, snapshotted server-side
+// when switching to MONITOR (where the live scan returns nothing on this adapter).
+export const getKnownNetworks = () =>
+  apiGet<{ saved_at: string | null; networks: Network[] }>("/api/scan/known");
+
 export async function addScope(
   bssid: string,
   ssid?: string,

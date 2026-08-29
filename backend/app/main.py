@@ -24,6 +24,7 @@ from .routers import (
     flow,
     health,
     mode,
+    scan,
     share,
     status,
     watchdog,
@@ -62,6 +63,7 @@ app.include_router(health.router)
 app.include_router(status.router)
 app.include_router(connect.router)
 app.include_router(mode.router)
+app.include_router(scan.router)
 app.include_router(capture.router)
 app.include_router(share.router)
 app.include_router(driver.router)

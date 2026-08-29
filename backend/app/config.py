@@ -34,6 +34,10 @@ class Settings:
     # Where capture sessions (csv + pcap) are written.
     capture_dir: str = os.environ.get("WIFIDECK_CAPTURE_DIR", "/tmp/wifideck/sessions")
 
+    # The last MANAGED scan, snapshotted when switching to MONITOR (where the live
+    # scan returns nothing on this adapter) so target pickers still have networks.
+    known_file: str = os.environ.get("WIFIDECK_KNOWN_FILE", "/tmp/wifideck/known.json")
+
     # Interface facing the host (macOS) for internet sharing (VMware NAT nic).
     share_downlink: str = os.environ.get("WIFIDECK_SHARE_DOWNLINK", "eth0")
 

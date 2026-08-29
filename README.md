@@ -76,8 +76,8 @@ with `python3 scripts/security_check.py`.
 ## Tests
 
 ```bash
-cd backend && PYTHONPATH=. pytest -q        # 54 tests
-cd frontend && npm run test && npm run lint # 25 tests
+cd backend && PYTHONPATH=. pytest -q        # 92 tests
+cd frontend && npm run test && npm run lint # 36 tests
 python3 scripts/security_check.py           # 6 security invariants
 ```
 

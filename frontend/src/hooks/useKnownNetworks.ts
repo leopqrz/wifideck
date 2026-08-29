@@ -1,37 +1,24 @@
-import { useEffect, useRef, useState } from "react";
-import type { Network } from "../api/client";
+import { useEffect, useState } from "react";
+import { getKnownNetworks, type Network } from "../api/client";
 
-const KEY = "wifideck.knownNetworks";
-
-// Remembers the most recent non-empty scan. In MANAGED mode nmcli reports every
-// nearby network with SSID + BSSID + channel; in MONITOR the airodump scan on
-// this adapter usually returns nothing, so we reuse the remembered MANAGED list
-// to pick deauth / capture targets — the channel comes along for free. Persisted
-// to localStorage so it's there even if you reload straight into monitor.
-export function useKnownNetworks(live: Network[]): Network[] {
-  const [known, setKnown] = useState<Network[]>(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      return raw ? (JSON.parse(raw) as Network[]) : [];
-    } catch {
-      return [];
-    }
-  });
-  const lastJson = useRef("");
-
+// The remembered network list — the last MANAGED scan, snapshotted server-side
+// when you switch to MONITOR (monitor can't enumerate SSIDs on this adapter).
+// Re-fetched whenever the mode changes, so the fresh snapshot loads right after
+// the switch. Used to fill the deauth / capture target pickers in monitor.
+export function useKnownNetworks(mode: string | null): Network[] {
+  const [known, setKnown] = useState<Network[]>([]);
   useEffect(() => {
-    const withBssid = live.filter((n) => n.bssid);
-    if (withBssid.length === 0) return; // keep the last good list (monitor gives none)
-    const json = JSON.stringify(withBssid);
-    if (json === lastJson.current) return;
-    lastJson.current = json;
-    setKnown(withBssid);
-    try {
-      localStorage.setItem(KEY, json);
-    } catch {
-      /* ignore */
-    }
-  }, [live]);
-
+    let cancelled = false;
+    getKnownNetworks()
+      .then((r) => {
+        if (!cancelled) setKnown(r.networks);
+      })
+      .catch(() => {
+        /* ignore — leave the last list in place */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode]);
   return known;
 }

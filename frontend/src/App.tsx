@@ -36,9 +36,11 @@ export default function App() {
   const driver = useDriver();
   const history = useHistory(status);
   const active = useActiveModules();
-  // Targets for the offensive panels: the last full (MANAGED) scan, remembered so
-  // it's still pickable in MONITOR where the live scan comes back empty.
-  const known = useKnownNetworks(scan.networks);
+  // Targets for the offensive panels: the live scan while in MANAGED, or the
+  // remembered scan (snapshotted at the monitor switch) once the live one goes
+  // empty in MONITOR — each remembered network still carries its channel.
+  const known = useKnownNetworks(status?.mode ?? null);
+  const targets = scan.networks.length ? scan.networks : known;
   const { watchdog } = useWatchdog();
   const { flow } = useFlow();
   const { wids } = useWids();
@@ -118,7 +120,7 @@ export default function App() {
         <section className="pb-16">
           <ActivePanel
             status={status}
-            networks={known}
+            networks={targets}
             enabled={active.enabled}
             scope={active.scope}
             audit={active.audit}
@@ -127,7 +129,7 @@ export default function App() {
         </section>
 
         <section className="pb-8">
-          <FlowPanel networks={known} flow={flow} />
+          <FlowPanel networks={targets} flow={flow} />
         </section>
 
         <section className="pb-16">

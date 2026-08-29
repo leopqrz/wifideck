@@ -10,10 +10,13 @@ that still exercises the command sequence for tests.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from typing import Literal
 
 from ..models.status import Status
+from .known import KnownNetworks
 from .runner import CommandRunner
+from .scan import ScanService
 from .status import StatusService
 
 Target = Literal["managed", "monitor"]
@@ -28,9 +31,17 @@ class ModeError(Exception):
 
 
 class ModeService:
-    def __init__(self, runner: CommandRunner, status: StatusService) -> None:
+    def __init__(
+        self,
+        runner: CommandRunner,
+        status: StatusService,
+        scan: ScanService | None = None,
+        known: KnownNetworks | None = None,
+    ) -> None:
         self.runner = runner
         self.status = status
+        self.scan = scan
+        self.known = known
         self._lock = asyncio.Lock()
         self.transition: str | None = None  # e.g. "to_monitor" while switching
 
@@ -58,6 +69,14 @@ class ModeService:
                 self.transition = None
 
     async def _to_monitor(self, iface: str, channel: int | None) -> None:
+        # Snapshot a fresh MANAGED scan NOW, while the link is still up — monitor
+        # mode can't enumerate SSIDs on this adapter, so this remembered list is
+        # what the deauth / capture pickers use (each entry keeps its channel). A
+        # scan failure must never block the switch.
+        if self.scan is not None and self.known is not None:
+            with contextlib.suppress(Exception):
+                self.known.save(await self.scan.scan_managed())
+
         # Tell NetworkManager to leave this interface alone (it releases
         # wpa_supplicant for the device). We do NOT kill NetworkManager — doing so
         # left the device 'unmanaged' after switching back, so scans stopped.

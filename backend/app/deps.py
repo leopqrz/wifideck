@@ -9,6 +9,7 @@ from .services.connect import ConnectService
 from .services.crack import CrackService
 from .services.driver import DriverService
 from .services.flow import CaptureFlowService
+from .services.known import KnownNetworks
 from .services.mode import ModeService
 from .services.runner import CommandRunner
 from .services.scan import ScanService
@@ -38,11 +39,23 @@ def get_driver_service() -> DriverService:
     )
 
 
+# The last MANAGED scan, snapshotted when we switch to MONITOR (shared singleton,
+# backed by a JSON file). Read by the /api/scan/known endpoint.
+_known_networks = KnownNetworks(settings.known_file)
+
+
+def get_known_networks() -> KnownNetworks:
+    return _known_networks
+
+
 # ModeService holds the switch state machine, so it must be a single shared
-# instance across requests (its asyncio.Lock serializes concurrent switches).
+# instance across requests (its asyncio.Lock serializes concurrent switches). It
+# also snapshots a fresh scan into _known_networks on the way into monitor.
 _mode_service = ModeService(
     runner=CommandRunner(mock=settings.mock),
     status=StatusService(CommandRunner(mock=settings.mock)),
+    scan=ScanService(CommandRunner(mock=settings.mock)),
+    known=_known_networks,
 )
 
 
