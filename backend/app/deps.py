@@ -9,10 +9,12 @@ from .services.driver import DriverService
 from .services.flow import CaptureFlowService
 from .services.mode import ModeService
 from .services.runner import CommandRunner
+from .services.scan import ScanService
 from .services.scope import ScopeList
 from .services.share import ShareService
 from .services.status import StatusService
 from .services.watchdog import WatchdogService
+from .services.wids import WidsService
 
 
 def get_status_service() -> StatusService:
@@ -87,6 +89,21 @@ _watchdog_service = WatchdogService(
 
 def get_watchdog_service() -> WatchdogService:
     return _watchdog_service
+
+
+_wids_service = WidsService(
+    runner=CommandRunner(mock=settings.mock),
+    scan=ScanService(CommandRunner(mock=settings.mock)),
+    status=StatusService(CommandRunner(mock=settings.mock)),
+    interval=settings.wids_interval,
+    deauth_threshold=settings.wids_deauth_threshold,
+    mock=settings.mock,
+    enabled=settings.wids_enabled,
+)
+
+
+def get_wids_service() -> WidsService:
+    return _wids_service
 
 
 def get_active_service() -> ActiveService:

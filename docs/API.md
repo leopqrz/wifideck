@@ -92,8 +92,16 @@ Phase 7 guardrails up front (active enabled + authorized + target in scope).
 - `GET /api/flow` — current status.
 - `WS /ws/flow` — streams `{ "type": "flow", "data": <FlowStatus> }` (state + per-step progress + handshake).
 
+### Defensive monitoring / WIDS-lite  *(Phase 11)*
+Passive detection (never transmits) of evil-twin APs (from scans) and deauth
+floods (tshark, monitor mode).
+- `GET /api/wids` — `{ enabled, running, checks, alert_count, last_check, alerts[] }`.
+- `POST /api/wids {enabled}` — start/stop the monitor.
+- `WS /ws/wids` — streams `{ "type": "wids", "data": <WidsStatus> }` (status + alerts).
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |
 |---|---|---|
+| 12 | cracking integration | aircrack/hashcat a captured handshake (scope-gated) |
 | 7 | `POST /api/audit/*` | gated active modules |

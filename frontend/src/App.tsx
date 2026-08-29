@@ -8,6 +8,7 @@ import { ShareControl } from "./components/ShareControl";
 import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
 import { WatchdogPanel } from "./components/WatchdogPanel";
+import { WidsPanel } from "./components/WidsPanel";
 import { ActivePanel } from "./components/ActivePanel";
 import { FlowPanel } from "./components/FlowPanel";
 import { TokenGate } from "./components/TokenGate";
@@ -21,6 +22,7 @@ import { useHistory } from "./hooks/useHistory";
 import { useActiveModules } from "./hooks/useActiveModules";
 import { useWatchdog } from "./hooks/useWatchdog";
 import { useFlow } from "./hooks/useFlow";
+import { useWids } from "./hooks/useWids";
 
 export default function App() {
   const health = useHealth();
@@ -33,6 +35,7 @@ export default function App() {
   const active = useActiveModules();
   const { watchdog } = useWatchdog();
   const { flow } = useFlow();
+  const { wids } = useWids();
   const backendOnline = health.status === "online";
   const needsToken = health.status === "error" && health.unauthorized;
 
@@ -81,8 +84,9 @@ export default function App() {
           <MetricsPanel status={status} history={history} />
         </section>
 
-        <section className="pb-8">
+        <section className="grid gap-4 pb-8 lg:grid-cols-2">
           <WatchdogPanel watchdog={watchdog} />
+          <WidsPanel wids={wids} />
         </section>
 
         <section className="grid gap-4 pb-8 lg:grid-cols-2">

@@ -12,7 +12,12 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from .auth import valid_ws_token
 from .config import settings
-from .deps import get_capture_service, get_flow_service, get_watchdog_service
+from .deps import (
+    get_capture_service,
+    get_flow_service,
+    get_watchdog_service,
+    get_wids_service,
+)
 from .services.runner import CommandRunner
 from .services.scan import AirodumpScanner, ScanService
 from .services.status import StatusService
@@ -158,5 +163,24 @@ async def flow_stream(websocket: WebSocket, token: str = "") -> None:
                 {"type": "flow", "data": svc.status_info().model_dump(mode="json")}
             )
             await asyncio.sleep(1.5)
+    except WebSocketDisconnect:
+        return
+
+
+@router.websocket("/ws/wids")
+async def wids_stream(websocket: WebSocket, token: str = "") -> None:
+    """Stream defensive-monitoring status + alerts."""
+    if not valid_ws_token(token):
+        await websocket.close(code=1008)
+        return
+
+    await websocket.accept()
+    svc = get_wids_service()
+    try:
+        while True:
+            await websocket.send_json(
+                {"type": "wids", "data": svc.status_info().model_dump(mode="json")}
+            )
+            await asyncio.sleep(2.0)
     except WebSocketDisconnect:
         return

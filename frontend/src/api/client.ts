@@ -136,6 +136,36 @@ export interface WatchdogStatus {
   events: WatchdogEvent[];
 }
 
+export const widsUrl = () => wsUrl("/ws/wids");
+
+export interface WidsAlert {
+  timestamp: string;
+  kind: string;
+  severity: string;
+  ssid: string | null;
+  bssid: string | null;
+  detail: string;
+}
+
+export interface WidsStatus {
+  enabled: boolean;
+  running: boolean;
+  checks: number;
+  alert_count: number;
+  last_check: string | null;
+  alerts: WidsAlert[];
+}
+
+export async function setWids(enabled: boolean): Promise<WidsStatus> {
+  const res = await fetch("/api/wids", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) throw new Error(`wids ${res.status}`);
+  return res.json();
+}
+
 export async function setWatchdog(enabled: boolean): Promise<WatchdogStatus> {
   const res = await fetch("/api/watchdog", {
     method: "POST",

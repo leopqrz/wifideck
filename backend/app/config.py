@@ -50,6 +50,12 @@ class Settings:
     watchdog_enabled: bool = _bool("WIFIDECK_WATCHDOG", False)
     watchdog_interval: float = float(os.environ.get("WIFIDECK_WATCHDOG_INTERVAL", "5"))
 
+    # --- Defensive monitoring (WIDS-lite) ----------------------------------
+    # Detect evil-twin APs (from scans) and deauth floods (tshark, monitor mode).
+    wids_enabled: bool = _bool("WIFIDECK_WIDS", False)
+    wids_interval: float = float(os.environ.get("WIFIDECK_WIDS_INTERVAL", "10"))
+    wids_deauth_threshold: int = int(os.environ.get("WIFIDECK_WIDS_DEAUTH_THRESHOLD", "20"))
+
     version: str = "2.0.0"
 
 
