@@ -175,6 +175,11 @@ function DeauthSection({
           title="frame count"
         />
       </div>
+      <p className="mt-1 font-mono text-[10px] text-faint">
+        {networks.length
+          ? "from your last MANAGED scan — each target carries its channel"
+          : "no saved networks yet — switch to MANAGED once to scan, then come back"}
+      </p>
       <button
         onClick={send}
         disabled={!canSend}

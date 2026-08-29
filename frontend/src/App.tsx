@@ -21,6 +21,7 @@ import { useShare } from "./hooks/useShare";
 import { useDriver } from "./hooks/useDriver";
 import { useHistory } from "./hooks/useHistory";
 import { useActiveModules } from "./hooks/useActiveModules";
+import { useKnownNetworks } from "./hooks/useKnownNetworks";
 import { useWatchdog } from "./hooks/useWatchdog";
 import { useFlow } from "./hooks/useFlow";
 import { useWids } from "./hooks/useWids";
@@ -35,6 +36,9 @@ export default function App() {
   const driver = useDriver();
   const history = useHistory(status);
   const active = useActiveModules();
+  // Targets for the offensive panels: the last full (MANAGED) scan, remembered so
+  // it's still pickable in MONITOR where the live scan comes back empty.
+  const known = useKnownNetworks(scan.networks);
   const { watchdog } = useWatchdog();
   const { flow } = useFlow();
   const { wids } = useWids();
@@ -114,7 +118,7 @@ export default function App() {
         <section className="pb-16">
           <ActivePanel
             status={status}
-            networks={scan.networks}
+            networks={known}
             enabled={active.enabled}
             scope={active.scope}
             audit={active.audit}
@@ -123,7 +127,7 @@ export default function App() {
         </section>
 
         <section className="pb-8">
-          <FlowPanel networks={scan.networks} flow={flow} />
+          <FlowPanel networks={known} flow={flow} />
         </section>
 
         <section className="pb-16">

@@ -132,6 +132,11 @@ export function FlowPanel({
           >
             Run flow
           </button>
+          <p className="w-full font-mono text-[10px] text-faint">
+            {networks.length
+              ? "targets from your last MANAGED scan — channel fills in automatically"
+              : "no saved networks yet — switch to MANAGED once to scan, then come back"}
+          </p>
         </div>
       )}
 
