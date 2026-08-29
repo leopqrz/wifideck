@@ -26,7 +26,17 @@ browser. Binds to `127.0.0.1` only, token-authed.
 | **Defense** | WIDS-lite — evil-twin + deauth-flood detection with an alerts timeline |
 | **Cracking** | aircrack-ng a captured handshake vs a wordlist, scope-gated, live progress |
 
-## Quick start (development)
+## Quick start
+
+Easiest — one command starts the backend + frontend and opens your browser
+(Ctrl+C stops both). If the systemd service is running it just opens it:
+
+```bash
+./wifideck                 # http://localhost:5173
+WIFIDECK_MOCK=1 ./wifideck # no adapter needed (fixtures; UI shows a MOCK DATA badge)
+```
+
+Or run the pieces yourself:
 
 ```bash
 # backend (real hardware needs root for mode/capture/share)
@@ -36,9 +46,6 @@ WIFIDECK_TOKEN=dev-token-change-me PYTHONPATH=. uvicorn app.main:app --host 127.
 # frontend (needs Node 18+; nvm recommended)
 cd frontend && npm install && npm run dev      # http://127.0.0.1:5173  (proxies /api + /ws)
 ```
-
-Run everything with no adapter attached by adding `WIFIDECK_MOCK=1` (serves
-fixtures; the UI shows a **MOCK DATA** badge).
 
 ## Install as a service (production)
 
@@ -73,7 +80,7 @@ python3 scripts/security_check.py           # 6 security invariants
 - [docs/PLAN.md](docs/PLAN.md) — the full phased plan · [docs/FUTURE.md](docs/FUTURE.md) — candidate future phases
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/API.md](docs/API.md) · [docs/SECURITY.md](docs/SECURITY.md)
 - [docs/phases/](docs/phases/) — per-phase build notes + acceptance results
-- [scripts/](scripts/) — the `wifideck` launcher + terminal fallbacks (`wifi-status`, etc.)
+- [`./wifideck`](wifideck) — launcher · [scripts/security_check.py](scripts/security_check.py) — security re-review
 
 ## License
 

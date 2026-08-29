@@ -14,7 +14,7 @@
 # (sudo ./install.sh) or start the backend with sudo for those.
 #
 set -euo pipefail
-ROOT="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+ROOT="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 TOKEN="${WIFIDECK_TOKEN:-dev-token-change-me}"
 MOCK="${WIFIDECK_MOCK:-0}"
 

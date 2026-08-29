@@ -1,6 +1,6 @@
 """ShareService — NAT the ALFA's uplink to the host (macOS).
 
-Wraps the scripts/wifi-share logic: enable IP forwarding, MASQUERADE out the
+The NAT sharing logic: enable IP forwarding, MASQUERADE out the
 uplink, forward from the downlink, and make the uplink the preferred default
 route so forwarded traffic doesn't loop back to the Mac.
 

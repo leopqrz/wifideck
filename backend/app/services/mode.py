@@ -1,9 +1,8 @@
 """ModeService — switch the adapter between MANAGED and MONITOR.
 
-Mirrors the proven sequences from the scripts/wifi-monitor / wifi-managed
-scripts, wrapped in a state machine that serializes switches: a request that
-arrives mid-transition is rejected (ModeBusy → HTTP 409) rather than corrupting
-the radio state.
+Runs the proven iw / nmcli / airmon-ng mode-switch sequences, wrapped in a state
+machine that serializes switches: a request that arrives mid-transition is
+rejected (ModeBusy → HTTP 409) rather than corrupting the radio state.
 
 Requires root in real mode (iw / ip / nmcli / airmon-ng). Mock mode is a no-op
 that still exercises the command sequence for tests.
