@@ -94,6 +94,24 @@ class ModeService:
             )
 
     async def _to_managed(self, iface: str) -> None:
+        # A monitor-mode scan (airodump-ng) keeps the adapter attached in monitor,
+        # which makes `iw set type managed` a silent no-op — the card stays in
+        # monitor while the command still returns success. Clear it first.
+        await self._kill_scanners()
+        await self._managed_sequence(iface)
+        # Some drivers report success but stay in monitor if a scan re-grabbed the
+        # radio mid-switch — verify, retry once, then fail loudly rather than
+        # returning a misleading "ok" that leaves the UI to time out.
+        if await self._is_monitor():
+            await self._kill_scanners()
+            await self._managed_sequence(iface)
+            if await self._is_monitor():
+                raise ModeError(
+                    "Adapter is still in MONITOR after switching. A monitor scan "
+                    "may be holding it — stop any scan/capture and try again."
+                )
+
+    async def _managed_sequence(self, iface: str) -> None:
         await self.runner.run(["ip", "link", "set", iface, "down"])
         await self._require(
             ["iw", "dev", iface, "set", "type", "managed"],
@@ -105,6 +123,14 @@ class ModeService:
         await self.runner.run(["nmcli", "device", "set", iface, "managed", "yes"])
         await self.runner.run(["nmcli", "device", "connect", iface])
         await self.runner.run(["nmcli", "device", "wifi", "rescan"])
+
+    async def _kill_scanners(self) -> None:
+        # airodump-ng is the only thing WiFiDeck runs that pins monitor mode.
+        # pkill exits non-zero when nothing matches — harmless, so it's not _require'd.
+        await self.runner.run(["pkill", "-f", "airodump-ng"])
+
+    async def _is_monitor(self) -> bool:
+        return ((await self.status.snapshot()).mode or "").upper() == "MONITOR"
 
     async def _require(self, args: list[str], msg: str) -> None:
         result = await self.runner.run(args)

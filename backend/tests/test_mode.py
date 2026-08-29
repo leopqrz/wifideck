@@ -8,7 +8,7 @@ import pytest
 from app.deps import get_known_networks, get_mode_service
 from app.main import app
 from app.services.known import KnownNetworks
-from app.services.mode import ModeBusy, ModeService
+from app.services.mode import ModeBusy, ModeError, ModeService
 from app.services.runner import CommandResult, CommandRunner
 from app.services.scan import ScanService
 from app.services.status import StatusService
@@ -65,6 +65,30 @@ def test_to_managed_hands_back_to_nm():
     assert r.issued("iw", "dev", "wlan0", "set", "type", "managed")
     assert r.issued("nmcli", "device", "set", "wlan0", "managed", "yes")
     assert r.issued("nmcli", "device", "connect", "wlan0")
+
+
+def test_to_managed_kills_scanners_holding_the_card():
+    r = RecordingRunner()
+    asyncio.run(_svc(r).set_mode("managed"))
+    # airodump-ng pins monitor mode; the switch must clear it first.
+    assert r.issued("pkill", "-f", "airodump-ng")
+
+
+def test_to_managed_raises_if_still_in_monitor():
+    """A driver that reports success but stays in monitor is surfaced, not hidden."""
+
+    class StuckMonitorRunner(RecordingRunner):
+        async def run(self, args, timeout=15.0):
+            self.calls.append(list(args))
+            if args[:2] == ["iw", "dev"] and len(args) == 2:
+                return CommandResult(0, "\tInterface wlan0\n\t\ttype monitor\n", "")
+            if args and args[0] == "lsusb":
+                return CommandResult(0, "0bda:8812\n", "")
+            return CommandResult(0, "", "")
+
+    r = StuckMonitorRunner()
+    with pytest.raises(ModeError, match="still in MONITOR"):
+        asyncio.run(_svc(r).set_mode("managed"))
 
 
 def test_concurrent_switch_is_rejected():

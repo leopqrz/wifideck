@@ -43,12 +43,30 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
+BACKEND_PAT="uvicorn app.main:app --host 127.0.0.1 --port 8787"
+
+# Reap anything left over from a previous run so a plain ./wifideck restarts
+# cleanly — no manual pkill needed. Covers a backend (root, if it was sudo'd) and
+# orphaned monitor scans that would otherwise pin the adapter in monitor mode.
+reap_stale() {
+  pkill -f "$BACKEND_PAT" 2>/dev/null || true
+  if [ -n "$SUDO" ]; then
+    $SUDO pkill -f "$BACKEND_PAT" 2>/dev/null || true
+    $SUDO pkill -f "airodump-ng .*wd_scan_" 2>/dev/null || true
+  fi
+}
+reap_stale
+sleep 0.5
+
 pids=()
 cleanup() {
   echo; echo "stopping WiFiDeck…"
   kill "${pids[@]}" 2>/dev/null || true
-  # a sudo'd backend runs as root, so reap it explicitly
-  [ -n "$SUDO" ] && $SUDO pkill -f "uvicorn app.main:app --host 127.0.0.1 --port 8787" 2>/dev/null || true
+  # a sudo'd backend runs as root, so reap it (and any monitor scan) explicitly
+  if [ -n "$SUDO" ]; then
+    $SUDO pkill -f "$BACKEND_PAT" 2>/dev/null || true
+    $SUDO pkill -f "airodump-ng .*wd_scan_" 2>/dev/null || true
+  fi
 }
 trap cleanup EXIT INT TERM
 
