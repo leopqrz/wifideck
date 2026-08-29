@@ -7,6 +7,7 @@ import { CaptureControl } from "./components/CaptureControl";
 import { ShareControl } from "./components/ShareControl";
 import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
+import { WatchdogPanel } from "./components/WatchdogPanel";
 import { ActivePanel } from "./components/ActivePanel";
 import { TokenGate } from "./components/TokenGate";
 import { useHealth } from "./hooks/useHealth";
@@ -17,6 +18,7 @@ import { useShare } from "./hooks/useShare";
 import { useDriver } from "./hooks/useDriver";
 import { useHistory } from "./hooks/useHistory";
 import { useActiveModules } from "./hooks/useActiveModules";
+import { useWatchdog } from "./hooks/useWatchdog";
 
 export default function App() {
   const health = useHealth();
@@ -27,6 +29,7 @@ export default function App() {
   const driver = useDriver();
   const history = useHistory(status);
   const active = useActiveModules();
+  const { watchdog } = useWatchdog();
   const backendOnline = health.status === "online";
   const needsToken = health.status === "error" && health.unauthorized;
 
@@ -73,6 +76,10 @@ export default function App() {
 
         <section className="pb-8">
           <MetricsPanel status={status} history={history} />
+        </section>
+
+        <section className="pb-8">
+          <WatchdogPanel watchdog={watchdog} />
         </section>
 
         <section className="grid gap-4 pb-8 lg:grid-cols-2">

@@ -44,6 +44,12 @@ class Settings:
     scope_file: str = os.environ.get("WIFIDECK_SCOPE_FILE", "/tmp/wifideck/scope.json")
     audit_log: str = os.environ.get("WIFIDECK_AUDIT_LOG", "/tmp/wifideck/audit.jsonl")
 
+    # --- Self-healing watchdog ---------------------------------------------
+    # Watches for USB disconnects / -71 register errors and auto-recovers the
+    # adapter (driver reload, USB reset, reconnect). Off by default; needs root.
+    watchdog_enabled: bool = _bool("WIFIDECK_WATCHDOG", False)
+    watchdog_interval: float = float(os.environ.get("WIFIDECK_WATCHDOG_INTERVAL", "5"))
+
     version: str = "2.0.0"
 
 

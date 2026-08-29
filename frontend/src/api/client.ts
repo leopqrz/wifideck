@@ -64,6 +64,36 @@ function wsUrl(path: string): string {
 export const statusUrl = () => wsUrl("/ws/status");
 export const scanUrl = () => wsUrl("/ws/scan");
 export const captureUrl = () => wsUrl("/ws/capture");
+export const watchdogUrl = () => wsUrl("/ws/watchdog");
+
+export interface WatchdogEvent {
+  timestamp: string;
+  kind: string;
+  detail: string;
+  result: string;
+}
+
+export interface WatchdogStatus {
+  enabled: boolean;
+  running: boolean;
+  healthy: boolean | null;
+  usb_present: boolean | null;
+  interface: string | null;
+  checks: number;
+  recoveries: number;
+  last_check: string | null;
+  events: WatchdogEvent[];
+}
+
+export async function setWatchdog(enabled: boolean): Promise<WatchdogStatus> {
+  const res = await fetch("/api/watchdog", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) throw new Error(`watchdog ${res.status}`);
+  return res.json();
+}
 
 export interface Network {
   bssid: string | null;

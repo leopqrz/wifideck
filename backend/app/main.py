@@ -5,6 +5,7 @@ Run in dev:  uvicorn app.main:app --reload --host 127.0.0.1 --port 8787
 """
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -13,9 +14,21 @@ from fastapi.staticfiles import StaticFiles
 
 from . import ws
 from .config import settings
-from .routers import active, capture, driver, health, mode, share, status
+from .deps import get_watchdog_service
+from .routers import active, capture, driver, health, mode, share, status, watchdog
 
-app = FastAPI(title="WiFiDeck", version=settings.version)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Auto-start the self-healing watchdog if enabled (real hardware only).
+    wd = get_watchdog_service()
+    if settings.watchdog_enabled and not settings.mock:
+        wd.start()
+    yield
+    await wd.stop()
+
+
+app = FastAPI(title="WiFiDeck", version=settings.version, lifespan=lifespan)
 
 # The Vite dev server (5173) talks to this API cross-origin during development.
 app.add_middleware(
@@ -35,6 +48,7 @@ app.include_router(capture.router)
 app.include_router(share.router)
 app.include_router(driver.router)
 app.include_router(active.router)
+app.include_router(watchdog.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

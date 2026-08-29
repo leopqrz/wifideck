@@ -79,6 +79,11 @@ gated by an in-scope allowlist + per-action authorization. Every attempt is audi
 - `GET /api/audit?limit=` — recent audit entries (newest first).
 - `POST /api/active/deauth {bssid, client?, count, authorized}` — gated deauth. Refusals: `403` (active disabled / not authorized / not in scope), `409` (not in MONITOR mode). Success returns the `AuditEntry`. **Authorized testing of your own networks only.**
 
+### Self-healing watchdog  *(Phase 9)*
+- `GET /api/watchdog` — status: `{ enabled, running, healthy, usb_present, interface, checks, recoveries, last_check, events[] }`.
+- `POST /api/watchdog {enabled}` — start/stop the watchdog loop.
+- `WS /ws/watchdog` — streams `{ "type": "watchdog", "data": <WatchdogStatus> }` every 2s (health + recovery events). Recovery escalates: driver reload → USB reset → reconnect; a full off-bus drop is reported as a host (passthrough) issue.
+
 ## Planned (later phases)
 
 | Phase | Endpoint | Purpose |

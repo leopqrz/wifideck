@@ -11,6 +11,7 @@ from .services.runner import CommandRunner
 from .services.scope import ScopeList
 from .services.share import ShareService
 from .services.status import StatusService
+from .services.watchdog import WatchdogService
 
 
 def get_status_service() -> StatusService:
@@ -72,6 +73,19 @@ def get_scope_list() -> ScopeList:
 
 def get_audit_log() -> AuditLog:
     return _audit_log
+
+
+_watchdog_service = WatchdogService(
+    runner=CommandRunner(mock=settings.mock),
+    status=StatusService(CommandRunner(mock=settings.mock)),
+    interval=settings.watchdog_interval,
+    mock=settings.mock,
+    enabled=settings.watchdog_enabled,
+)
+
+
+def get_watchdog_service() -> WatchdogService:
+    return _watchdog_service
 
 
 def get_active_service() -> ActiveService:
