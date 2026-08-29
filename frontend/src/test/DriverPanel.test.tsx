@@ -10,6 +10,8 @@ const inKernel: DriverInfo = {
   dkms: [{ name: "realtek-rtl88xxau", version: "5.6.4.2~git", status: "added" }],
   recommended: "88XXau",
   using_recommended: false,
+  recommended_buildable: true,
+  kernel_max: null,
   note: "In-kernel rtw88_8812au is loaded — weak for injection.",
   install_hint: ["sudo dkms install realtek-rtl88xxau/5.6.4.2 -k 7.1.5+kali-arm64"],
 };

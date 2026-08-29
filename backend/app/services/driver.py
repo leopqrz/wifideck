@@ -19,6 +19,18 @@ RECOMMENDED = "88XXau"
 RECOMMENDED_ALIASES = {"88XXau", "8812au", "rtl88xxau"}
 
 
+def _version_tuple(s: str) -> tuple[int, ...]:
+    parts = re.findall(r"\d+", s)
+    return tuple(int(p) for p in parts[:2]) if parts else (0,)
+
+
+def kernel_buildable(kernel: str, kernel_max: str | None) -> bool:
+    """True if `kernel` is within the DKMS driver's BUILD_EXCLUSIVE_KERNEL_MAX."""
+    if not kernel_max:
+        return True  # no declared limit -> assume it builds
+    return _version_tuple(kernel) <= _version_tuple(kernel_max)
+
+
 def parse_dkms_status(text: str) -> list[DkmsModule]:
     """Parse `dkms status` (handles both 'name/ver: status' and
     'name/ver, kernel, arch: status' forms)."""
@@ -47,6 +59,15 @@ class DriverService:
                 return mod
         return None
 
+    async def _kernel_max(self) -> str | None:
+        """The 88XXau DKMS driver's BUILD_EXCLUSIVE_KERNEL_MAX, if any."""
+        r = await self.runner.run(
+            ["sh", "-c",
+             "grep -h BUILD_EXCLUSIVE_KERNEL_MAX /usr/src/realtek-rtl88xxau-*/dkms.conf 2>/dev/null | head -1"]
+        )
+        m = re.search(r"(\d+\.\d+)", r.stdout)
+        return m.group(1) if m else None
+
     async def info(self) -> DriverInfo:
         # Prefer the driver bound to the live interface; fall back to the loaded
         # module so the panel still reports something when the adapter is unplugged.
@@ -54,10 +75,13 @@ class DriverService:
         kernel = (await self.runner.run(["uname", "-r"])).stdout.strip()
         dkms = parse_dkms_status((await self.runner.run(["dkms", "status"])).stdout)
 
+        kernel_max = await self._kernel_max()
+        buildable = kernel_buildable(kernel, kernel_max)
         using = bool(current and current in RECOMMENDED_ALIASES)
         note = None
         hint: list[str] = []
-        if not using:
+
+        if not using and buildable:
             note = (
                 "In-kernel rtw88_8812au is loaded — reliable for MANAGED mode but weak "
                 "for injection. The 88XXau DKMS driver is recommended for monitor/injection."
@@ -70,6 +94,14 @@ class DriverService:
                     "sudo tee /etc/modprobe.d/blacklist-rtw88-alfa.conf",
                     "sudo modprobe -r rtw88_8812au; sudo modprobe 88XXau",
                 ]
+        elif not using and not buildable:
+            # The recommended driver won't build on this kernel — do NOT hand out the
+            # blacklist commands, or they'd leave the adapter with no working driver.
+            note = (
+                f"In-kernel rtw88_8812au is loaded. The 88XXau DKMS driver does not support "
+                f"this kernel (builds only up to {kernel_max}), so it can't be installed here — "
+                f"keep the in-kernel driver and reduce -71 instability with USB 3.1 + a powered hub."
+            )
 
         return DriverInfo(
             current=current,
@@ -77,6 +109,8 @@ class DriverService:
             dkms=dkms,
             recommended=RECOMMENDED,
             using_recommended=using,
+            recommended_buildable=buildable,
+            kernel_max=kernel_max,
             note=note,
             install_hint=hint,
         )

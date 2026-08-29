@@ -16,5 +16,7 @@ class DriverInfo(BaseModel):
     dkms: list[DkmsModule] = []
     recommended: str = "88XXau"
     using_recommended: bool = False
+    recommended_buildable: bool = True   # does the DKMS driver support this kernel?
+    kernel_max: str | None = None        # BUILD_EXCLUSIVE_KERNEL_MAX, if declared
     note: str | None = None
     install_hint: list[str] = []

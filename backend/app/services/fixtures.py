@@ -93,4 +93,6 @@ def match(args: list[str]) -> tuple[int, str, str]:
         return (0, KERNEL, "")
     if cmd == "dkms":
         return (0, DKMS_STATUS, "")
+    if cmd == "sh" and any("BUILD_EXCLUSIVE" in a for a in args):
+        return (0, 'BUILD_EXCLUSIVE_KERNEL_MAX="6.15"\n', "")
     return (0, "", "")

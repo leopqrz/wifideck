@@ -170,6 +170,8 @@ export interface DriverInfo {
   dkms: DkmsModule[];
   recommended: string;
   using_recommended: boolean;
+  recommended_buildable: boolean;
+  kernel_max: string | null;
   note: string | null;
   install_hint: string[];
 }
