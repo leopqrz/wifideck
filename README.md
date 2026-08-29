@@ -36,6 +36,10 @@ Easiest — one command starts the backend + frontend and opens your browser
 ./wifideck                 # http://localhost:5173  (view/scan/connect work as your user)
 WIFIDECK_SUDO=1 ./wifideck # backend as root — needed for mode-switch / capture / deauth / sharing
 WIFIDECK_MOCK=1 ./wifideck # no adapter needed (fixtures; UI shows a MOCK DATA badge)
+
+# enable the gated offensive modules (deauth + guided capture) — your OWN networks only;
+# each action still requires an in-scope target + the "I'm authorized" confirmation:
+WIFIDECK_SUDO=1 WIFIDECK_ENABLE_ACTIVE=1 ./wifideck
 ```
 
 Or run the pieces yourself:

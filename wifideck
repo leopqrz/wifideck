@@ -11,6 +11,9 @@
 #   WIFIDECK_TOKEN=...  API token (default: dev-token-change-me)
 #   WIFIDECK_SUDO=1     run the backend as root so mode-switch / capture /
 #                       deauth / sharing work (sudo prompts once)
+#   WIFIDECK_ENABLE_ACTIVE=1  enable the gated offensive modules (deauth, guided
+#                       capture) — authorized testing of your OWN networks only;
+#                       each action still needs an in-scope target + confirmation
 #
 set -euo pipefail
 ROOT="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
@@ -49,8 +52,16 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "→ backend  http://127.0.0.1:8787  (mock=$MOCK${SUDO:+, root})"
-( cd "$ROOT/backend" && $SUDO env WIFIDECK_MOCK="$MOCK" WIFIDECK_TOKEN="$TOKEN" \
+# forward every WIFIDECK_* var (mock/token + WIFIDECK_ENABLE_ACTIVE, WIFIDECK_WATCHDOG,
+# WIFIDECK_WIDS, WIFIDECK_WORDLIST, …) through to the backend, even under sudo.
+export WIFIDECK_MOCK="$MOCK" WIFIDECK_TOKEN="$TOKEN"
+WD_ENV=()
+while IFS= read -r kv; do WD_ENV+=("$kv"); done < <(env | grep '^WIFIDECK_')
+
+ACTIVE_NOTE=""
+[ "${WIFIDECK_ENABLE_ACTIVE:-0}" = "1" ] && ACTIVE_NOTE=", active modules ON"
+echo "→ backend  http://127.0.0.1:8787  (mock=$MOCK${SUDO:+, root}$ACTIVE_NOTE)"
+( cd "$ROOT/backend" && $SUDO env "${WD_ENV[@]}" \
     PYTHONPATH=. python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8787 ) &
 pids+=($!)
 
