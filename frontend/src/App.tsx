@@ -11,6 +11,7 @@ import { WatchdogPanel } from "./components/WatchdogPanel";
 import { WidsPanel } from "./components/WidsPanel";
 import { ActivePanel } from "./components/ActivePanel";
 import { FlowPanel } from "./components/FlowPanel";
+import { CrackPanel } from "./components/CrackPanel";
 import { TokenGate } from "./components/TokenGate";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
@@ -23,6 +24,7 @@ import { useActiveModules } from "./hooks/useActiveModules";
 import { useWatchdog } from "./hooks/useWatchdog";
 import { useFlow } from "./hooks/useFlow";
 import { useWids } from "./hooks/useWids";
+import { useCrack } from "./hooks/useCrack";
 
 export default function App() {
   const health = useHealth();
@@ -36,6 +38,7 @@ export default function App() {
   const { watchdog } = useWatchdog();
   const { flow } = useFlow();
   const { wids } = useWids();
+  const { crack } = useCrack();
   const backendOnline = health.status === "online";
   const needsToken = health.status === "error" && health.unauthorized;
 
@@ -112,8 +115,12 @@ export default function App() {
           />
         </section>
 
-        <section className="pb-16">
+        <section className="pb-8">
           <FlowPanel scope={active.scope} flow={flow} />
+        </section>
+
+        <section className="pb-16">
+          <CrackPanel crack={crack} />
         </section>
       </main>
 

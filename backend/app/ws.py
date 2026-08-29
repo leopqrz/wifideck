@@ -14,6 +14,7 @@ from .auth import valid_ws_token
 from .config import settings
 from .deps import (
     get_capture_service,
+    get_crack_service,
     get_flow_service,
     get_watchdog_service,
     get_wids_service,
@@ -182,5 +183,24 @@ async def wids_stream(websocket: WebSocket, token: str = "") -> None:
                 {"type": "wids", "data": svc.status_info().model_dump(mode="json")}
             )
             await asyncio.sleep(2.0)
+    except WebSocketDisconnect:
+        return
+
+
+@router.websocket("/ws/crack")
+async def crack_stream(websocket: WebSocket, token: str = "") -> None:
+    """Stream live cracking progress (keys tested, rate, found key)."""
+    if not valid_ws_token(token):
+        await websocket.close(code=1008)
+        return
+
+    await websocket.accept()
+    svc = get_crack_service()
+    try:
+        while True:
+            await websocket.send_json(
+                {"type": "crack", "data": svc.status_info().model_dump(mode="json")}
+            )
+            await asyncio.sleep(1.0)
     except WebSocketDisconnect:
         return

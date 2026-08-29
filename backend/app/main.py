@@ -18,6 +18,7 @@ from .deps import get_watchdog_service, get_wids_service
 from .routers import (
     active,
     capture,
+    crack,
     driver,
     flow,
     health,
@@ -66,6 +67,7 @@ app.include_router(active.router)
 app.include_router(watchdog.router)
 app.include_router(flow.router)
 app.include_router(wids.router)
+app.include_router(crack.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

@@ -56,6 +56,10 @@ class Settings:
     wids_interval: float = float(os.environ.get("WIFIDECK_WIDS_INTERVAL", "10"))
     wids_deauth_threshold: int = int(os.environ.get("WIFIDECK_WIDS_DEAUTH_THRESHOLD", "20"))
 
+    # --- Cracking (aircrack-ng) --------------------------------------------
+    # Default wordlist for handshake cracking (Kali ships rockyou.txt.gz — gunzip it).
+    wordlist: str = os.environ.get("WIFIDECK_WORDLIST", "/usr/share/wordlists/rockyou.txt")
+
     version: str = "2.0.0"
 
 

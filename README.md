@@ -6,7 +6,7 @@ handshakes, share internet to the host, watch signal/throughput charts, and run
 authorization-gated active tests — all from a fast, dark, live dashboard in your
 browser. Binds to `127.0.0.1` only, token-authed.
 
-**Status: v2.0** — phases 0–8 complete. Full plan: [docs/PLAN.md](docs/PLAN.md).
+**Status: v2.4** — phases 0–12 complete. Full plan: [docs/PLAN.md](docs/PLAN.md).
 
 ![WiFiDeck dashboard](docs/screenshot.png)
 
@@ -21,6 +21,10 @@ browser. Binds to `127.0.0.1` only, token-authed.
 | **Share** | NAT the ALFA uplink to the host, with copyable macOS route/DNS commands |
 | **Charts** | signal & TX-rate sparklines; driver/DKMS panel with switch hints |
 | **Active** | gated deauth — off by default, scope allowlist + per-action auth + audit log |
+| **Watchdog** | auto-recover the `-71` USB drops (driver reload → USB reset → reconnect) |
+| **Guided flow** | one gated workflow: monitor → capture → deauth → handshake → export |
+| **Defense** | WIDS-lite — evil-twin + deauth-flood detection with an alerts timeline |
+| **Cracking** | aircrack-ng a captured handshake vs a wordlist, scope-gated, live progress |
 
 ## Quick start (development)
 

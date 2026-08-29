@@ -5,6 +5,7 @@ from .config import settings
 from .services.active import ActiveService
 from .services.audit import AuditLog
 from .services.capture import CaptureService
+from .services.crack import CrackService
 from .services.driver import DriverService
 from .services.flow import CaptureFlowService
 from .services.mode import ModeService
@@ -139,3 +140,17 @@ _flow_service = CaptureFlowService(
 
 def get_flow_service() -> CaptureFlowService:
     return _flow_service
+
+
+# Handshake cracking — single shared instance (one crack job at a time).
+_crack_service = CrackService(
+    capture=_capture_service,
+    scope=_scope_list,
+    audit=_audit_log,
+    default_wordlist=settings.wordlist,
+    mock=settings.mock,
+)
+
+
+def get_crack_service() -> CrackService:
+    return _crack_service

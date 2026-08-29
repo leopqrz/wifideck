@@ -344,6 +344,57 @@ export interface CaptureDetail extends CaptureSession {
   networks: Network[];
 }
 
+export const crackUrl = () => wsUrl("/ws/crack");
+
+export interface CrackStatus {
+  state: string;
+  session_id: string | null;
+  bssid: string | null;
+  wordlist: string | null;
+  tested: number;
+  total: number | null;
+  rate: number | null;
+  key: string | null;
+  message: string | null;
+}
+
+export async function getCaptures(): Promise<CaptureSession[]> {
+  const res = await fetch("/api/capture", { headers: { Authorization: `Bearer ${getToken()}` } });
+  if (!res.ok) throw new Error(`captures ${res.status}`);
+  return res.json();
+}
+
+export async function startCrack(
+  sessionId: string,
+  wordlist: string | null,
+  authorized: boolean,
+): Promise<CrackStatus> {
+  const res = await fetch("/api/crack", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, wordlist: wordlist || null, authorized }),
+  });
+  if (!res.ok) {
+    let d = `crack ${res.status}`;
+    try {
+      d = (await res.json()).detail ?? d;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(d);
+  }
+  return res.json();
+}
+
+export async function stopCrack(): Promise<CrackStatus> {
+  const res = await fetch("/api/crack/stop", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) throw new Error(`stop ${res.status}`);
+  return res.json();
+}
+
 export async function startCapture(
   channel?: number | null,
   bssid?: string | null,

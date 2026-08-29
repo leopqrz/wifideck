@@ -99,9 +99,14 @@ floods (tshark, monitor mode).
 - `POST /api/wids {enabled}` — start/stop the monitor.
 - `WS /ws/wids` — streams `{ "type": "wids", "data": <WidsStatus> }` (status + alerts).
 
-## Planned (later phases)
+### Handshake cracking  *(Phase 12)*
+Runs `aircrack-ng` on a captured session's handshake against a wordlist. Gated:
+the session's target BSSID must be in scope + explicit authorization; audited.
+- `POST /api/crack {session_id, wordlist?, authorized}` — start; `403` refused, `404` unknown session, `409` busy.
+- `POST /api/crack/stop` — stop the job.
+- `GET /api/crack` — status.
+- `WS /ws/crack` — streams `{ "type": "crack", "data": <CrackStatus> }` (keys tested, rate, found key).
 
-| Phase | Endpoint | Purpose |
-|---|---|---|
-| 12 | cracking integration | aircrack/hashcat a captured handshake (scope-gated) |
+---
+*All planned phases (0–12) are complete.*
 | 7 | `POST /api/audit/*` | gated active modules |
