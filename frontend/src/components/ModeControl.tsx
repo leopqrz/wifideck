@@ -17,6 +17,17 @@ export function ModeControl({ status }: { status: Status | null }) {
     if (pending && current === pending.toUpperCase()) setPending(null);
   }, [current, pending]);
 
+  // Safety net: never spin on "switching…" forever (e.g. if the backend died
+  // mid-switch). After 20s without the mode reaching the target, stop + warn.
+  useEffect(() => {
+    if (!pending) return;
+    const t = setTimeout(() => {
+      setPending(null);
+      setError("Switch didn't complete — is the backend running (as root)?");
+    }, 20000);
+    return () => clearTimeout(t);
+  }, [pending]);
+
   const disabled = pending !== null || status === null;
 
   async function doSwitch(target: Target) {
