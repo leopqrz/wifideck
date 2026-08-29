@@ -48,15 +48,21 @@ BACKEND_PAT="uvicorn app.main:app --host 127.0.0.1 --port 8787"
 # Reap anything left over from a previous run so a plain ./wifideck restarts
 # cleanly — no manual pkill needed. Covers a backend (root, if it was sudo'd) and
 # orphaned monitor scans that would otherwise pin the adapter in monitor mode.
+# Force-kill (leftovers are being discarded) and wait for :8787 to actually free
+# before we try to bind it.
 reap_stale() {
-  pkill -f "$BACKEND_PAT" 2>/dev/null || true
+  pkill -9 -f "$BACKEND_PAT" 2>/dev/null || true
   if [ -n "$SUDO" ]; then
-    $SUDO pkill -f "$BACKEND_PAT" 2>/dev/null || true
-    $SUDO pkill -f "airodump-ng .*wd_scan_" 2>/dev/null || true
+    $SUDO pkill -9 -f "$BACKEND_PAT" 2>/dev/null || true
+    $SUDO pkill -9 -f "airodump-ng .*wd_scan_" 2>/dev/null || true
   fi
+  for _ in $(seq 1 20); do
+    command -v ss >/dev/null 2>&1 || { sleep 1; break; }
+    ss -ltn 2>/dev/null | grep -q ':8787 ' || break
+    sleep 0.25
+  done
 }
 reap_stale
-sleep 0.5
 
 pids=()
 cleanup() {
