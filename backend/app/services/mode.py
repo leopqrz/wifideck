@@ -69,13 +69,14 @@ class ModeService:
                 self.transition = None
 
     async def _to_monitor(self, iface: str, channel: int | None) -> None:
-        # Snapshot a fresh MANAGED scan NOW, while the link is still up — monitor
-        # mode can't enumerate SSIDs on this adapter, so this remembered list is
-        # what the deauth / capture pickers use (each entry keeps its channel). A
-        # scan failure must never block the switch.
+        # Snapshot a MANAGED scan NOW, while the link is still up — monitor mode
+        # can't enumerate SSIDs on this adapter, so this remembered list is what
+        # the deauth / capture pickers use (each entry keeps its channel). Force a
+        # fresh rescan (not NetworkManager's cache) so the saved list is complete.
+        # A scan failure must never block the switch.
         if self.scan is not None and self.known is not None:
             with contextlib.suppress(Exception):
-                self.known.save(await self.scan.scan_managed())
+                self.known.save(await self.scan.scan_managed(rescan="yes"))
 
         # Tell NetworkManager to leave this interface alone (it releases
         # wpa_supplicant for the device). We do NOT kill NetworkManager — doing so
