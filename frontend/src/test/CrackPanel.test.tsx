@@ -16,7 +16,7 @@ const found: CrackStatus = {
 };
 
 describe("CrackPanel", () => {
-  it("offers Crack, disabled until session + authorized", () => {
+  it("offers Crack, disabled until a session is picked", () => {
     render(<CrackPanel crack={null} />);
     expect(screen.getByRole("button", { name: "Crack" })).toBeDisabled();
     expect(screen.getByText(/select a session/i)).toBeInTheDocument();

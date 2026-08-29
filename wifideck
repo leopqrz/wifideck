@@ -11,9 +11,9 @@
 #   WIFIDECK_TOKEN=...  API token (default: dev-token-change-me)
 #   WIFIDECK_SUDO=1     run the backend as root so mode-switch / capture /
 #                       deauth / sharing work (sudo prompts once)
-#   WIFIDECK_ENABLE_ACTIVE=1  enable the gated offensive modules (deauth, guided
+#   WIFIDECK_ENABLE_ACTIVE=1  enable the offensive modules (deauth, guided
 #                       capture) — authorized testing of your OWN networks only;
-#                       each action still needs an in-scope target + confirmation
+#                       pick a network from the scan, confirm once, all audited
 #
 set -euo pipefail
 ROOT="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"

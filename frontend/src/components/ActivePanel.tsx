@@ -4,18 +4,21 @@ import {
   removeScope,
   deauth,
   type AuditEntry,
+  type Network,
   type ScopeTarget,
   type Status,
 } from "../api/client";
 
 export function ActivePanel({
   status,
+  networks,
   enabled,
   scope,
   audit,
   onChange,
 }: {
   status: Status | null;
+  networks: Network[];
   enabled: boolean;
   scope: ScopeTarget[];
   audit: AuditEntry[];
@@ -32,13 +35,13 @@ export function ActivePanel({
         </span>
       </div>
       <p className="mt-2 font-mono text-[11px] text-muted">
-        Transmit actions (deauth) disrupt real networks. Use only on networks you own
-        or are explicitly authorized to assess. Every action is logged below.
+        Deauth disrupts real networks — it kicks devices off the air. Use only on networks
+        you own or are authorized to assess. Every action is logged below.
       </p>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <DeauthSection status={status} networks={networks} enabled={enabled} onChange={onChange} />
         <ScopeSection scope={scope} onChange={onChange} />
-        <DeauthSection status={status} enabled={enabled} scope={scope} onChange={onChange} />
       </div>
 
       <AuditSection audit={audit} />
@@ -46,33 +49,20 @@ export function ActivePanel({
   );
 }
 
+// A record of the networks you've acted on. Populated automatically when you
+// deauth / run a flow, or via the "+ target" button on a network row.
 function ScopeSection({ scope, onChange }: { scope: ScopeTarget[]; onChange: () => void }) {
-  const [bssid, setBssid] = useState("");
-  const [ssid, setSsid] = useState("");
-  const [error, setError] = useState<string | null>(null);
-
-  async function add() {
-    setError(null);
-    try {
-      await addScope(bssid.trim(), ssid.trim());
-      setBssid("");
-      setSsid("");
-      onChange();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  }
-
   return (
     <div>
       <div className="font-mono text-[10px] uppercase tracking-hud text-faint">
-        Authorized scope ({scope.length})
+        Authorized targets ({scope.length})
       </div>
+      <p className="mt-1 font-mono text-[10px] text-faint">
+        added automatically when you deauth / run a flow
+      </p>
       <div className="mt-2 flex flex-col gap-1">
         {scope.length === 0 && (
-          <span className="font-mono text-xs text-faint">
-            empty — no target is actionable until added
-          </span>
+          <span className="font-mono text-xs text-faint">none yet</span>
         )}
         {scope.map((t) => (
           <div
@@ -95,46 +85,23 @@ function ScopeSection({ scope, onChange }: { scope: ScopeTarget[]; onChange: () 
           </div>
         ))}
       </div>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <input
-          value={bssid}
-          onChange={(e) => setBssid(e.target.value)}
-          placeholder="AA:BB:CC:DD:EE:FF"
-          className="w-44 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-xs text-text outline-none focus:border-accent"
-        />
-        <input
-          value={ssid}
-          onChange={(e) => setSsid(e.target.value)}
-          placeholder="label (optional)"
-          className="w-32 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-xs text-text outline-none focus:border-accent"
-        />
-        <button
-          onClick={add}
-          disabled={!bssid.trim()}
-          className="rounded border border-line px-3 py-1 font-mono text-xs text-text hover:border-accent disabled:opacity-40"
-        >
-          add target
-        </button>
-      </div>
-      {error && <p className="mt-2 font-mono text-xs text-crit">{error}</p>}
     </div>
   );
 }
 
 function DeauthSection({
   status,
+  networks,
   enabled,
-  scope,
   onChange,
 }: {
   status: Status | null;
+  networks: Network[];
   enabled: boolean;
-  scope: ScopeTarget[];
   onChange: () => void;
 }) {
-  const [target, setTarget] = useState("");
+  const [target, setTarget] = useState(""); // bssid
   const [count, setCount] = useState("5");
-  const [authorized, setAuthorized] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const monitor = status?.mode === "MONITOR";
@@ -152,13 +119,22 @@ function DeauthSection({
     );
   }
 
-  const canSend = authorized && !!target && monitor && !busy;
+  const canSend = !!target && monitor && !busy;
 
   async function send() {
+    const n = networks.find((x) => x.bssid === target);
+    const name = n?.ssid ?? target;
+    if (
+      !window.confirm(
+        `Send ${Number(count) || 5} deauth frames to "${name}"?\n\nThis disconnects devices on that network. Only do this on a network you own or are authorized to test.`,
+      )
+    )
+      return;
     setMsg(null);
     setBusy(true);
     try {
-      const entry = await deauth(target, Number(count) || 5, authorized);
+      await addScope(target, n?.ssid ?? undefined);
+      const entry = await deauth(target, Number(count) || 5, true);
       setMsg(`sent · ${entry.detail ?? "ok"}`);
       onChange();
     } catch (e) {
@@ -172,21 +148,24 @@ function DeauthSection({
     <div>
       <div className="font-mono text-[10px] uppercase tracking-hud text-faint">Deauth</div>
       {!monitor && (
-        <p className="mt-2 font-mono text-[11px] text-warn">Requires MONITOR mode.</p>
+        <p className="mt-2 font-mono text-[11px] text-warn">
+          Switch to MONITOR mode first (deauth transmits and needs monitor).
+        </p>
       )}
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <select
           value={target}
           onChange={(e) => setTarget(e.target.value)}
-          className="w-48 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-xs text-text outline-none focus:border-accent"
+          className="w-56 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-xs text-text outline-none focus:border-accent"
         >
-          <option value="">select in-scope target…</option>
-          {scope.map((t) => (
-            <option key={t.bssid} value={t.bssid}>
-              {t.bssid}
-              {t.ssid ? ` (${t.ssid})` : ""}
-            </option>
-          ))}
+          <option value="">pick a network…</option>
+          {networks
+            .filter((n) => n.bssid)
+            .map((n) => (
+              <option key={n.bssid} value={n.bssid ?? ""}>
+                {(n.ssid ?? "<hidden>") + ` · ch ${n.channel ?? "?"} · ${n.bssid}`}
+              </option>
+            ))}
         </select>
         <input
           inputMode="numeric"
@@ -196,15 +175,6 @@ function DeauthSection({
           title="frame count"
         />
       </div>
-      <label className="mt-3 flex items-start gap-2 font-mono text-[11px] text-muted">
-        <input
-          type="checkbox"
-          checked={authorized}
-          onChange={(e) => setAuthorized(e.target.checked)}
-          className="mt-0.5"
-        />
-        I confirm I am authorized to test this target.
-      </label>
       <button
         onClick={send}
         disabled={!canSend}

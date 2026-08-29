@@ -1,10 +1,11 @@
 import { useState } from "react";
 import {
+  addScope,
   startFlow,
   stopFlow,
   downloadPcap,
   type FlowStatus,
-  type ScopeTarget,
+  type Network,
 } from "../api/client";
 import { StatusPill } from "./StatusPill";
 
@@ -18,27 +19,41 @@ const STATE_TONE: Record<string, "ok" | "warn" | "crit" | "accent" | "muted"> = 
 };
 
 export function FlowPanel({
-  scope,
+  networks,
   flow,
 }: {
-  scope: ScopeTarget[];
+  networks: Network[];
   flow: FlowStatus | null;
 }) {
-  const [target, setTarget] = useState("");
+  const [target, setTarget] = useState(""); // bssid
   const [channel, setChannel] = useState("");
   const [count, setCount] = useState("8");
-  const [authorized, setAuthorized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const running = flow?.state === "running";
   const state = flow?.state ?? "idle";
 
+  function pick(bssid: string) {
+    setTarget(bssid);
+    const n = networks.find((x) => x.bssid === bssid);
+    if (n?.channel) setChannel(String(n.channel));
+  }
+
   async function start() {
+    const n = networks.find((x) => x.bssid === target);
+    const name = n?.ssid ?? target;
+    if (
+      !window.confirm(
+        `Run the guided capture flow on "${name}"?\n\nIt switches to MONITOR and sends deauth frames, briefly disconnecting devices on that network. Only do this on a network you own or are authorized to test.`,
+      )
+    )
+      return;
     setError(null);
     setBusy(true);
     try {
-      await startFlow(target, Number(channel), authorized, Number(count) || 8);
+      await addScope(target, n?.ssid ?? undefined);
+      await startFlow(target, Number(channel), true, Number(count) || 8);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -57,7 +72,7 @@ export function FlowPanel({
     }
   }
 
-  const canStart = authorized && !!target && !!channel && !running && !busy;
+  const canStart = !!target && !!channel && !running && !busy;
 
   return (
     <div className="rounded-[10px] border border-crit/40 bg-crit/[0.04] p-5">
@@ -76,19 +91,20 @@ export function FlowPanel({
       {!running && (
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-hud text-faint">
-            target (in scope)
+            network
             <select
               value={target}
-              onChange={(e) => setTarget(e.target.value)}
-              className="w-48 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-sm text-text outline-none focus:border-accent"
+              onChange={(e) => pick(e.target.value)}
+              className="w-56 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-sm text-text outline-none focus:border-accent"
             >
-              <option value="">select…</option>
-              {scope.map((t) => (
-                <option key={t.bssid} value={t.bssid}>
-                  {t.bssid}
-                  {t.ssid ? ` (${t.ssid})` : ""}
-                </option>
-              ))}
+              <option value="">pick a network…</option>
+              {networks
+                .filter((n) => n.bssid)
+                .map((n) => (
+                  <option key={n.bssid} value={n.bssid ?? ""}>
+                    {(n.ssid ?? "<hidden>") + ` · ch ${n.channel ?? "?"} · ${n.bssid}`}
+                  </option>
+                ))}
             </select>
           </label>
           <label className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-hud text-faint">
@@ -108,14 +124,6 @@ export function FlowPanel({
               onChange={(e) => setCount(e.target.value.replace(/\D/g, ""))}
               className="w-16 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-sm text-text outline-none focus:border-accent"
             />
-          </label>
-          <label className="flex items-center gap-2 self-center pt-4 font-mono text-[11px] text-muted">
-            <input
-              type="checkbox"
-              checked={authorized}
-              onChange={(e) => setAuthorized(e.target.checked)}
-            />
-            authorized
           </label>
           <button
             onClick={start}

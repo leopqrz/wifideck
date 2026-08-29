@@ -114,6 +114,7 @@ export default function App() {
         <section className="pb-16">
           <ActivePanel
             status={status}
+            networks={scan.networks}
             enabled={active.enabled}
             scope={active.scope}
             audit={active.audit}
@@ -122,7 +123,7 @@ export default function App() {
         </section>
 
         <section className="pb-8">
-          <FlowPanel scope={active.scope} flow={flow} />
+          <FlowPanel networks={scan.networks} flow={flow} />
         </section>
 
         <section className="pb-16">

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ActivePanel } from "../components/ActivePanel";
-import type { ScopeTarget, Status } from "../api/client";
+import type { Network, ScopeTarget, Status } from "../api/client";
 
 const monitor: Status = {
   usb_present: true, driver: "88XXau", interface: "wlan0", mode: "MONITOR",
@@ -9,39 +9,45 @@ const monitor: Status = {
   freq_mhz: 5785, band: "5 GHz", health: "ok", health_detail: null,
 };
 
+const net: Network = {
+  bssid: "AA:BB:CC:DD:EE:FF", ssid: "MyLab", band: "5 GHz", channel: 149,
+  signal_pct: 80, signal_dbm: -50, security: ["WPA2"], is_current: false, clients: 0,
+};
+
 const target: ScopeTarget = { bssid: "AA:BB:CC:DD:EE:FF", ssid: "MyLab", note: null, added: "2026-08-28T00:00:00+00:00" };
 
 describe("ActivePanel", () => {
   it("shows the disabled notice when active modules are off", () => {
-    render(<ActivePanel status={monitor} enabled={false} scope={[]} audit={[]} onChange={vi.fn()} />);
+    render(<ActivePanel status={monitor} networks={[net]} enabled={false} scope={[]} audit={[]} onChange={vi.fn()} />);
     expect(screen.getByText(/WIFIDECK_ENABLE_ACTIVE=1/)).toBeInTheDocument();
     // no send button while disabled
     expect(screen.queryByRole("button", { name: /Send deauth/i })).not.toBeInTheDocument();
   });
 
-  it("gates the deauth button until authorized + target selected", () => {
+  it("gates the deauth button until a target is picked", () => {
     render(
-      <ActivePanel status={monitor} enabled={true} scope={[target]} audit={[]} onChange={vi.fn()} />,
+      <ActivePanel status={monitor} networks={[net]} enabled={true} scope={[]} audit={[]} onChange={vi.fn()} />,
     );
     const send = screen.getByRole("button", { name: /Send deauth/i });
-    expect(send).toBeDisabled(); // no authorization checkbox ticked, no target selected
+    expect(send).toBeDisabled(); // nothing selected in the network dropdown yet
   });
 
   it("warns and disables when not in MONITOR mode", () => {
     render(
       <ActivePanel
         status={{ ...monitor, mode: "MANAGED" }}
+        networks={[net]}
         enabled={true}
         scope={[target]}
         audit={[]}
         onChange={vi.fn()}
       />,
     );
-    expect(screen.getByText(/Requires MONITOR mode/i)).toBeInTheDocument();
+    expect(screen.getByText(/Switch to MONITOR mode first/i)).toBeInTheDocument();
   });
 
-  it("shows the empty-scope hint", () => {
-    render(<ActivePanel status={monitor} enabled={true} scope={[]} audit={[]} onChange={vi.fn()} />);
-    expect(screen.getByText(/no target is actionable until added/i)).toBeInTheDocument();
+  it("shows the empty-targets hint", () => {
+    render(<ActivePanel status={monitor} networks={[net]} enabled={true} scope={[]} audit={[]} onChange={vi.fn()} />);
+    expect(screen.getByText(/none yet/i)).toBeInTheDocument();
   });
 });

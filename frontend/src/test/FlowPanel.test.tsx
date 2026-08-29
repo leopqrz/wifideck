@@ -1,10 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FlowPanel } from "../components/FlowPanel";
-import type { FlowStatus, ScopeTarget } from "../api/client";
+import type { FlowStatus, Network } from "../api/client";
 
-const scope: ScopeTarget[] = [
-  { bssid: "02:00:00:00:00:01", ssid: "MockNet-5G", note: null, added: "2026-08-29T00:00:00+00:00" },
+const networks: Network[] = [
+  {
+    bssid: "02:00:00:00:00:01", ssid: "MockNet-5G", band: "5 GHz", channel: 157,
+    signal_pct: 70, signal_dbm: -55, security: ["WPA2"], is_current: false, clients: 0,
+  },
 ];
 
 const runningFlow: FlowStatus = {
@@ -29,20 +32,20 @@ const doneFlow: FlowStatus = {
 };
 
 describe("FlowPanel", () => {
-  it("offers Run flow, disabled until authorized + target + channel", () => {
-    render(<FlowPanel scope={scope} flow={null} />);
+  it("offers Run flow, disabled until a network is picked", () => {
+    render(<FlowPanel networks={networks} flow={null} />);
     expect(screen.getByRole("button", { name: /Run flow/i })).toBeDisabled();
   });
 
   it("shows step progress and a Stop button while running", () => {
-    render(<FlowPanel scope={scope} flow={runningFlow} />);
+    render(<FlowPanel networks={networks} flow={runningFlow} />);
     expect(screen.getByText("monitor")).toBeInTheDocument();
     expect(screen.getByText("capture")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
 
   it("offers pcap download when done with a handshake", () => {
-    render(<FlowPanel scope={scope} flow={doneFlow} />);
+    render(<FlowPanel networks={networks} flow={doneFlow} />);
     expect(screen.getByText(/Handshake captured/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Download .pcap/i })).toBeInTheDocument();
   });

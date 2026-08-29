@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  addScope,
   getCaptures,
   startCrack,
   stopCrack,
@@ -21,7 +22,6 @@ export function CrackPanel({ crack }: { crack: CrackStatus | null }) {
   const [sessions, setSessions] = useState<CaptureSession[]>([]);
   const [session, setSession] = useState("");
   const [wordlist, setWordlist] = useState("");
-  const [authorized, setAuthorized] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +39,11 @@ export function CrackPanel({ crack }: { crack: CrackStatus | null }) {
     setError(null);
     setBusy(true);
     try {
-      await startCrack(session, wordlist || null, authorized);
+      // Cracking is offline (no transmit), so no confirm — just make sure the
+      // captured target is authorized, then run.
+      const s = sessions.find((x) => x.id === session);
+      if (s?.target_bssid) await addScope(s.target_bssid);
+      await startCrack(session, wordlist || null, true);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -58,7 +62,7 @@ export function CrackPanel({ crack }: { crack: CrackStatus | null }) {
     }
   }
 
-  const canStart = authorized && !!session && !running && !busy;
+  const canStart = !!session && !running && !busy;
 
   return (
     <div className="rounded-[10px] border border-crit/40 bg-crit/[0.04] p-5">
@@ -99,14 +103,6 @@ export function CrackPanel({ crack }: { crack: CrackStatus | null }) {
               placeholder="/usr/share/wordlists/rockyou.txt"
               className="w-64 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-sm text-text outline-none focus:border-accent"
             />
-          </label>
-          <label className="flex items-center gap-2 self-center pt-4 font-mono text-[11px] text-muted">
-            <input
-              type="checkbox"
-              checked={authorized}
-              onChange={(e) => setAuthorized(e.target.checked)}
-            />
-            authorized
           </label>
           <button
             onClick={start}
