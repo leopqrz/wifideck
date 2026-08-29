@@ -98,7 +98,13 @@ export default function App() {
         </section>
 
         <section className="pb-8">
-          <NetworkTable networks={scan.networks} source={scan.source} />
+          <NetworkTable
+            networks={scan.networks}
+            source={scan.source}
+            scopeBssids={new Set(active.scope.map((t) => t.bssid))}
+            activeEnabled={active.enabled}
+            onScopeChange={active.refresh}
+          />
         </section>
 
         <section className="pb-8">

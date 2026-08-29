@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  addScope,
   connectWifi,
   disconnectWifi,
   forgetWifi,
   getSaved,
+  removeScope,
   type Network,
 } from "../api/client";
 
@@ -55,9 +57,15 @@ function SecurityBadges({ security }: { security: string[] }) {
 export function NetworkTable({
   networks,
   source,
+  scopeBssids = new Set(),
+  activeEnabled = false,
+  onScopeChange,
 }: {
   networks: Network[];
   source: string | null;
+  scopeBssids?: Set<string>;
+  activeEnabled?: boolean;
+  onScopeChange?: () => void;
 }) {
   const [query, setQuery] = useState("");
   const [band, setBand] = useState<"all" | "2.4 GHz" | "5 GHz">("all");
@@ -171,14 +179,24 @@ export function NetworkTable({
                 </td>
                 <td className="px-3 py-1.5 text-faint">{n.bssid ?? "—"}</td>
                 <td className="px-3 py-1.5 text-right">
-                  <ConnectCell
-                    network={n}
-                    isSaved={n.ssid ? saved.has(n.ssid) : false}
-                    expanded={connectRow === `${n.bssid ?? n.ssid ?? "net"}-${i}`}
-                    onExpand={() => setConnectRow(`${n.bssid ?? n.ssid ?? "net"}-${i}`)}
-                    onCollapse={() => setConnectRow(null)}
-                    onChanged={refreshSaved}
-                  />
+                  <span className="inline-flex items-center gap-2">
+                    {activeEnabled && n.bssid && (
+                      <ScopeButton
+                        bssid={n.bssid}
+                        ssid={n.ssid}
+                        scoped={scopeBssids.has(n.bssid)}
+                        onChange={onScopeChange}
+                      />
+                    )}
+                    <ConnectCell
+                      network={n}
+                      isSaved={n.ssid ? saved.has(n.ssid) : false}
+                      expanded={connectRow === `${n.bssid ?? n.ssid ?? "net"}-${i}`}
+                      onExpand={() => setConnectRow(`${n.bssid ?? n.ssid ?? "net"}-${i}`)}
+                      onCollapse={() => setConnectRow(null)}
+                      onChanged={refreshSaved}
+                    />
+                  </span>
                 </td>
               </tr>
             ))}
@@ -203,6 +221,50 @@ function Th({ children, onClick }: { children: React.ReactNode; onClick: () => v
         {children}
       </button>
     </th>
+  );
+}
+
+function ScopeButton({
+  bssid,
+  ssid,
+  scoped,
+  onChange,
+}: {
+  bssid: string;
+  ssid: string | null;
+  scoped: boolean;
+  onChange?: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  async function toggle() {
+    setBusy(true);
+    try {
+      if (scoped) await removeScope(bssid);
+      else await addScope(bssid, ssid ?? undefined);
+      onChange?.();
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      title={
+        scoped
+          ? "authorized target — click to remove from scope"
+          : "add as an authorized target (enables deauth / capture on this network)"
+      }
+      className={`rounded border px-2 py-0.5 font-mono text-[11px] ${
+        scoped
+          ? "border-crit/40 text-crit"
+          : "border-line text-faint hover:border-warn/40 hover:text-warn"
+      }`}
+    >
+      {scoped ? "★ target" : "+ target"}
+    </button>
   );
 }
 
