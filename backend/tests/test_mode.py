@@ -47,7 +47,7 @@ def test_to_managed_hands_back_to_nm():
     asyncio.run(_svc(r).set_mode("managed"))
     assert r.issued("iw", "dev", "wlan0", "set", "type", "managed")
     assert r.issued("nmcli", "device", "set", "wlan0", "managed", "yes")
-    assert r.issued("systemctl", "restart", "NetworkManager")
+    assert r.issued("nmcli", "device", "connect", "wlan0")
 
 
 def test_concurrent_switch_is_rejected():

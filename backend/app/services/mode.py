@@ -1,10 +1,10 @@
 """ModeService — switch the adapter between MANAGED and MONITOR.
 
-Runs the proven iw / nmcli / airmon-ng mode-switch sequences, wrapped in a state
+Runs the proven iw / nmcli mode-switch sequences, wrapped in a state
 machine that serializes switches: a request that arrives mid-transition is
 rejected (ModeBusy → HTTP 409) rather than corrupting the radio state.
 
-Requires root in real mode (iw / ip / nmcli / airmon-ng). Mock mode is a no-op
+Requires root in real mode (iw / ip / nmcli). Mock mode is a no-op
 that still exercises the command sequence for tests.
 """
 from __future__ import annotations
@@ -58,9 +58,10 @@ class ModeService:
                 self.transition = None
 
     async def _to_monitor(self, iface: str, channel: int | None) -> None:
-        # Hand the interface off from NetworkManager and clear radio-grabbing daemons.
+        # Tell NetworkManager to leave this interface alone (it releases
+        # wpa_supplicant for the device). We do NOT kill NetworkManager — doing so
+        # left the device 'unmanaged' after switching back, so scans stopped.
         await self.runner.run(["nmcli", "device", "set", iface, "managed", "no"])
-        await self.runner.run(["airmon-ng", "check", "kill"])  # best-effort
         await self.runner.run(["ip", "link", "set", iface, "down"])
         await self._require(
             ["iw", "dev", iface, "set", "type", "monitor"],
@@ -80,10 +81,11 @@ class ModeService:
             "Failed to set managed mode",
         )
         await self.runner.run(["ip", "link", "set", iface, "up"])
-        # Give the interface back to NetworkManager and let it reconnect.
+        # Hand the interface back to NetworkManager, reconnect, and kick a scan so
+        # the network list repopulates promptly. (No NM restart — it was never killed.)
         await self.runner.run(["nmcli", "device", "set", iface, "managed", "yes"])
-        await self.runner.run(["systemctl", "restart", "NetworkManager"])
         await self.runner.run(["nmcli", "device", "connect", iface])
+        await self.runner.run(["nmcli", "device", "wifi", "rescan"])
 
     async def _require(self, args: list[str], msg: str) -> None:
         result = await self.runner.run(args)
