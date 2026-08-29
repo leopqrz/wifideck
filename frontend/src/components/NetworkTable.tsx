@@ -7,7 +7,7 @@ import {
   type Network,
 } from "../api/client";
 
-type SortKey = "signal" | "ssid" | "channel";
+type SortKey = "signal" | "ssid" | "channel" | "band" | "security";
 
 function SignalBars({ pct }: { pct: number | null }) {
   const p = pct ?? 0;
@@ -82,6 +82,9 @@ export function NetworkTable({
       let d = 0;
       if (sortKey === "signal") d = (a.signal_pct ?? 0) - (b.signal_pct ?? 0);
       else if (sortKey === "channel") d = (a.channel ?? 0) - (b.channel ?? 0);
+      else if (sortKey === "band") d = (a.band ?? "").localeCompare(b.band ?? "");
+      else if (sortKey === "security")
+        d = (a.security.join(" ") || "OPEN").localeCompare(b.security.join(" ") || "OPEN");
       else d = (a.ssid ?? "").localeCompare(b.ssid ?? "");
       return asc ? d : -d;
     });
@@ -133,8 +136,8 @@ export function NetworkTable({
               <Th onClick={() => toggleSort("ssid")}>SSID{arrow("ssid")}</Th>
               <Th onClick={() => toggleSort("signal")}>Signal{arrow("signal")}</Th>
               <Th onClick={() => toggleSort("channel")}>Ch{arrow("channel")}</Th>
-              <th className="px-3 py-2 font-normal">Band</th>
-              <th className="px-3 py-2 font-normal">Security</th>
+              <Th onClick={() => toggleSort("band")}>Band{arrow("band")}</Th>
+              <Th onClick={() => toggleSort("security")}>Security{arrow("security")}</Th>
               <th className="px-3 py-2 font-normal">BSSID</th>
               <th className="px-3 py-2 font-normal"></th>
             </tr>
