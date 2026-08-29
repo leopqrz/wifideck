@@ -70,10 +70,10 @@ python3 scripts/security_check.py           # 6 security invariants
 
 ## Docs
 
-- [docs/PLAN.md](docs/PLAN.md) — the full phased plan
+- [docs/PLAN.md](docs/PLAN.md) — the full phased plan · [docs/FUTURE.md](docs/FUTURE.md) — candidate future phases
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/API.md](docs/API.md) · [docs/SECURITY.md](docs/SECURITY.md)
 - [docs/phases/](docs/phases/) — per-phase build notes + acceptance results
-- CLI counterpart the logic came from: `../alfa-tools`
+- [scripts/](scripts/) — the `wifideck` launcher + terminal fallbacks (`wifi-status`, etc.)
 
 ## License
 

@@ -1,6 +1,6 @@
 """ModeService — switch the adapter between MANAGED and MONITOR.
 
-Mirrors the proven sequences from the alfa-tools wifi-monitor / wifi-managed
+Mirrors the proven sequences from the scripts/wifi-monitor / wifi-managed
 scripts, wrapped in a state machine that serializes switches: a request that
 arrives mid-transition is rejected (ModeBusy → HTTP 409) rather than corrupting
 the radio state.

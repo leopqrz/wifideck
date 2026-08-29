@@ -1,0 +1,9 @@
+// Allow members of the "sudo" group to control NetworkManager (connect to
+// Wi-Fi, toggle radios, etc.) without a polkit password prompt.
+// Install to: /etc/polkit-1/rules.d/49-nmcli.rules
+polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 &&
+        subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+});

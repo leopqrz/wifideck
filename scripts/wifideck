@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#
+# wifideck — open the WiFiDeck app.
+#
+#   * If the installed systemd service is running, just opens the browser.
+#   * Otherwise starts the backend + frontend dev servers and opens the browser.
+#     Ctrl+C stops both.
+#
+# Options (env):
+#   WIFIDECK_MOCK=1     run with fixtures, no adapter needed
+#   WIFIDECK_TOKEN=...  API token (default: dev-token-change-me)
+#
+# Full mode-switch / capture / sharing need root — run the systemd service
+# (sudo ./install.sh) or start the backend with sudo for those.
+#
+set -euo pipefail
+ROOT="$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)"
+TOKEN="${WIFIDECK_TOKEN:-dev-token-change-me}"
+MOCK="${WIFIDECK_MOCK:-0}"
+
+open_url() { (xdg-open "$1" >/dev/null 2>&1 || sensible-browser "$1" >/dev/null 2>&1 || echo "  open $1 in your browser") & }
+
+# 1. Production: the service is already running -> just open it.
+if systemctl is-active --quiet wifideck 2>/dev/null; then
+  echo "wifideck service is running — opening http://127.0.0.1:8787"
+  open_url "http://127.0.0.1:8787"
+  exit 0
+fi
+
+# 2. Dev: start backend + frontend.
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
+if ! command -v npm >/dev/null 2>&1; then
+  echo "ERROR: Node/npm not found. Install Node 18+ (nvm recommended) for the frontend." >&2
+  exit 1
+fi
+
+pids=()
+cleanup() { echo; echo "stopping WiFiDeck…"; kill "${pids[@]}" 2>/dev/null || true; }
+trap cleanup EXIT INT TERM
+
+echo "→ backend  http://127.0.0.1:8787  (mock=$MOCK)"
+( cd "$ROOT/backend" && WIFIDECK_MOCK="$MOCK" WIFIDECK_TOKEN="$TOKEN" \
+    PYTHONPATH=. python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8787 ) &
+pids+=($!)
+
+echo "→ frontend http://localhost:5173"
+( cd "$ROOT/frontend" && { [ -d node_modules ] || npm install; } && npm run dev ) &
+pids+=($!)
+
+# wait for the dev server, then open the browser
+for _ in $(seq 1 80); do
+  curl -s -o /dev/null "http://localhost:5173/" && break
+  sleep 0.5
+done
+open_url "http://localhost:5173"
+echo
+echo "WiFiDeck is up → http://localhost:5173   (Ctrl+C to stop)"
+wait
