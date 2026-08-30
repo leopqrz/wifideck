@@ -54,8 +54,13 @@ _Last updated: 2026-08-30._
    26, reliable 14/15/16/18. _(Alternatively fix the 8812au DKMS driver for kernel
    7.1, but a new radio is more reliable and future-proof.)_
 2. **GPS dongle** (any u-blox USB) — unblocks 17 (wardriving/mapping).
-3. **Nothing else needed for compute** — the M4 (Metal) handles hashcat; the Jetson
-   handles edge ML; AWS covers training/bursts. Good to go.
+3. **Compute is covered — but mind *where* hashcat runs.** The backend lives in the
+   **Kali ARM VM**, which has **no GPU** — so hashcat there is CPU-only. To use the
+   **M4 Metal GPU** or an AWS GPU, run hashcat on the host/cloud and feed it the
+   `.22000` file (Phase 14 already produces the portable format). A small **"offload
+   crack" phase** (ship the 22000 to a remote hashcat + poll) would unlock full GPU
+   speed — worth adding. Jetson handles edge ML; AWS covers training/bursts.
+   To use the hashcat engine now, install on the VM: `sudo apt install hashcat hcxtools`.
 
 ## Where AI/ML genuinely helps (Phase 29, new)
 
