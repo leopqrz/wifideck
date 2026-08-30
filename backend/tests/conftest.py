@@ -28,8 +28,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services import fixtures
 
 TOKEN = "test-token"
+
+
+@pytest.fixture(autouse=True)
+def _reset_mock_mode():
+    """Mock adapter mode is process-global; reset it so tests don't leak state."""
+    fixtures.reset_mock_mode()
+    yield
 
 
 @pytest.fixture

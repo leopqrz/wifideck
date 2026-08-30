@@ -6,6 +6,16 @@ real path uses. All values are synthetic — documentation-range addresses
 """
 from __future__ import annotations
 
+# Mutable so a mock mode-switch is reflected by the next status read (otherwise the
+# mode toggle appears to hang in mock mode). Reset between tests via reset_mock_mode.
+_MOCK_MODE = "managed"
+
+
+def reset_mock_mode() -> None:
+    global _MOCK_MODE
+    _MOCK_MODE = "managed"
+
+
 LSUSB = (
     "Bus 003 Device 003: ID 0bda:8812 Realtek Semiconductor Corp. "
     "RTL8812AU 802.11a/b/g/n/ac 2T2R DB WLAN Adapter\n"
@@ -76,9 +86,14 @@ def match(args: list[str]) -> tuple[int, str, str]:
     if cmd == "nmcli" and "wifi" in args and "list" in args:
         return (0, NMCLI_WIFI, "")
     if cmd == "iw":
+        global _MOCK_MODE
+        if "set" in args and "type" in args:
+            # mock mode switch: remember the new type so the next status reflects it
+            _MOCK_MODE = args[-1]
+            return (0, "", "")
         if args and args[-1] == "link":
             return (0, IW_LINK, "")
-        return (0, IW_DEV, "")
+        return (0, IW_DEV.replace("type managed", f"type {_MOCK_MODE}"), "")
     if cmd == "readlink":
         return (0, DRIVER_PATH, "")
     if cmd == "ip":

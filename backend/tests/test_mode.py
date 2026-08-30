@@ -118,6 +118,15 @@ def test_endpoint_ok(client, auth_headers):
         app.dependency_overrides.clear()
 
 
+def test_mock_switch_reflected_in_status(client, auth_headers):
+    # In mock mode the toggle must actually flip the reported mode (else it hangs).
+    assert client.get("/api/status", headers=auth_headers).json()["mode"] == "MANAGED"
+    assert client.post("/api/mode", json={"mode": "monitor"}, headers=auth_headers).status_code == 200
+    assert client.get("/api/status", headers=auth_headers).json()["mode"] == "MONITOR"
+    client.post("/api/mode", json={"mode": "managed"}, headers=auth_headers)
+    assert client.get("/api/status", headers=auth_headers).json()["mode"] == "MANAGED"
+
+
 def test_endpoint_rejects_bad_mode(client, auth_headers):
     resp = client.post("/api/mode", json={"mode": "sniff"}, headers=auth_headers)
     assert resp.status_code == 422
