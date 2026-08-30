@@ -12,6 +12,7 @@ import json
 import os
 import re
 import tempfile
+from datetime import datetime, timezone
 
 from ..models.crack import CrackStatus
 from .audit import AuditLog
@@ -81,12 +82,14 @@ class CrackService:
         audit: AuditLog,
         default_wordlist: str,
         mock: bool,
+        history=None,
     ) -> None:
         self.capture = capture
         self.scope = scope
         self.audit = audit
         self.default_wordlist = default_wordlist
         self.mock = mock
+        self.history = history  # optional HistoryStore (SQLite)
         self._task: asyncio.Task | None = None
         self._proc: asyncio.subprocess.Process | None = None
         self._reset()
@@ -172,6 +175,12 @@ class CrackService:
             self.state = "failed"
             self.message = str(e)
             self.audit.record("crack.done", "error", target_bssid=bssid, detail=str(e)[:200])
+        finally:
+            if self.history and self.session_id:
+                self.history.record_crack(
+                    self.session_id, self.engine, self.state, self.key,
+                    datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                )
 
     async def _run_aircrack(self, bssid: str, wordlist: str, cap: str | None) -> None:
         self._proc = await asyncio.create_subprocess_exec(

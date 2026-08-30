@@ -52,10 +52,11 @@ def parse_aircrack_handshakes(text: str, target_bssid: str | None = None) -> dic
 
 
 class CaptureService:
-    def __init__(self, runner: CommandRunner, base_dir: str, mock: bool) -> None:
+    def __init__(self, runner: CommandRunner, base_dir: str, mock: bool, history=None) -> None:
         self.runner = runner
         self.base_dir = base_dir
         self.mock = mock
+        self.history = history  # optional HistoryStore (SQLite) for durable records
         self.sessions: dict[str, CaptureSession] = {}
         self._procs: dict[str, asyncio.subprocess.Process] = {}
         self._active: str | None = None
@@ -88,6 +89,8 @@ class CaptureService:
         )
         self.sessions[sid] = session
         self._active = sid
+        if self.history:
+            self.history.record_session(session)
 
         if not self.mock:
             if session.mode == "pmkid":
@@ -128,6 +131,8 @@ class CaptureService:
         session.stopped = datetime.now(timezone.utc).isoformat(timespec="seconds")
         if self._active == sid:
             self._active = None
+        if self.history:
+            self.history.record_session(session)
         return session
 
     async def refresh(self, sid: str) -> list[Network]:

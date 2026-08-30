@@ -14,6 +14,7 @@ import { TargetSelector } from "./components/TargetSelector";
 import { ActivePanel } from "./components/ActivePanel";
 import { FlowPanel } from "./components/FlowPanel";
 import { CrackPanel } from "./components/CrackPanel";
+import { HistoryPanel } from "./components/HistoryPanel";
 import { TokenGate } from "./components/TokenGate";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
@@ -142,8 +143,12 @@ export default function App() {
           <FlowPanel target={target} targetNet={targetNet} flow={flow} />
         </section>
 
-        <section className="pb-16">
+        <section className="pb-8">
           <CrackPanel crack={crack} targetBssid={target} />
+        </section>
+
+        <section className="pb-16">
+          <HistoryPanel refreshKey={crack?.state ?? ""} />
         </section>
       </main>
 

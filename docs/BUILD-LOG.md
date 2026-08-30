@@ -29,7 +29,7 @@ _Last updated: 2026-08-30._
 | **28** | **tshark handshake verification** | ✅ | none — CPU/tshark only |
 | 14 | hashcat mode 22000 cracking | ✅ | built; **GPU (M4 Metal / AWS)** + `hashcat`/`hcxtools` to run |
 | 15 | PMKID clientless capture (hcxdumptool) | 🧪 | built; **live capture needs working monitor + hcxdumptool** |
-| 20 | SQLite persistence & history | 🔨 | none |
+| 20 | SQLite persistence & history | ✅ | none |
 | 27 | WPA3 / SAE posture & recon | ⬜ | none (software) |
 | 22 | reporting & export (HTML/PDF) | ⬜ | none |
 | 16 | client/station intelligence | 🧪 | build unblocked; live data needs monitor |
@@ -92,4 +92,10 @@ Not bolted-on hype — real, modern uses:
   deauth). `mode` on the session model/API, a **handshake / PMKID** toggle in the
   Capture panel, `pcap_path` now finds `.pcapng`, mock flags PMKID. 108 backend + 47
   frontend tests. Live capture needs a working-monitor adapter + hcxdumptool
-  (`sudo apt install hcxdumptool`). Next: **Phase 20 (SQLite persistence)**.
+  (`sudo apt install hcxdumptool`).
+- **2026-08-30** — ✅ **Phase 20 done.** SQLite **history**: `HistoryStore` (graceful
+  no-op if the DB can't open) persists capture sessions + crack outcomes; capture
+  records on start/stop, crack records on finish; `GET /api/history` joins each
+  session with its latest crack; a **History** panel (when · mode · target ·
+  captured · crack key) that survives restarts. `WIFIDECK_DB` config + conftest.
+  113 backend + 48 frontend tests. Next: **Phase 27 (WPA3 posture)**, then 22.

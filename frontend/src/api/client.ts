@@ -260,6 +260,24 @@ export interface HandshakeInfo {
 export const getHandshakeInfo = (sid: string) =>
   apiGet<HandshakeInfo>(`/api/capture/${encodeURIComponent(sid)}/handshake`);
 
+export interface HistoryEntry {
+  id: string;
+  started: string;
+  stopped: string | null;
+  mode: string;
+  channel: number | null;
+  target_bssid: string | null;
+  handshake: boolean;
+  pmkid: boolean;
+  pcap_available: boolean;
+  crack_engine: string | null;
+  crack_state: string | null;
+  crack_key: string | null;
+}
+
+// Persisted history — past capture sessions + their crack outcomes (SQLite).
+export const getHistory = () => apiGet<HistoryEntry[]>("/api/history");
+
 export async function addScope(
   bssid: string,
   ssid?: string,

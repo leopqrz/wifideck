@@ -10,6 +10,7 @@ from .services.crack import CrackService
 from .services.driver import DriverService
 from .services.flow import CaptureFlowService
 from .services.handshake import HandshakeVerifier
+from .services.history import HistoryStore
 from .services.known import KnownNetworks
 from .services.mode import ModeService
 from .services.runner import CommandRunner
@@ -64,11 +65,20 @@ def get_mode_service() -> ModeService:
     return _mode_service
 
 
+# SQLite history — persists capture sessions + crack outcomes (shared singleton).
+_history_store = HistoryStore(settings.db_file)
+
+
+def get_history_store() -> HistoryStore:
+    return _history_store
+
+
 # CaptureService holds active sessions/subprocesses, so it's a shared singleton.
 _capture_service = CaptureService(
     runner=CommandRunner(mock=settings.mock),
     base_dir=settings.capture_dir,
     mock=settings.mock,
+    history=_history_store,
 )
 
 
@@ -176,6 +186,7 @@ _crack_service = CrackService(
     audit=_audit_log,
     default_wordlist=settings.wordlist,
     mock=settings.mock,
+    history=_history_store,
 )
 
 

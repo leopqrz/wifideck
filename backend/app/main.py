@@ -23,6 +23,7 @@ from .routers import (
     driver,
     flow,
     health,
+    history,
     mode,
     scan,
     share,
@@ -72,6 +73,7 @@ app.include_router(watchdog.router)
 app.include_router(flow.router)
 app.include_router(wids.router)
 app.include_router(crack.router)
+app.include_router(history.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

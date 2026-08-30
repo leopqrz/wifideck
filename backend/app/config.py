@@ -38,6 +38,9 @@ class Settings:
     # scan returns nothing on this adapter) so target pickers still have networks.
     known_file: str = os.environ.get("WIFIDECK_KNOWN_FILE", "/tmp/wifideck/known.json")
 
+    # SQLite history DB — persists capture sessions + crack outcomes across restarts.
+    db_file: str = os.environ.get("WIFIDECK_DB", "/tmp/wifideck/wifideck.db")
+
     # Interface facing the host (macOS) for internet sharing (VMware NAT nic).
     share_downlink: str = os.environ.get("WIFIDECK_SHARE_DOWNLINK", "eth0")
 

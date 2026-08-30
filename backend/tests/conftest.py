@@ -13,7 +13,12 @@ os.environ["WIFIDECK_CAPTURE_DIR"] = "/tmp/wifideck-test/sessions"
 os.environ["WIFIDECK_ENABLE_ACTIVE"] = "1"
 os.environ["WIFIDECK_SCOPE_FILE"] = "/tmp/wifideck-test/scope.json"
 os.environ["WIFIDECK_AUDIT_LOG"] = "/tmp/wifideck-test/audit.jsonl"
-for _p in ("/tmp/wifideck-test/scope.json", "/tmp/wifideck-test/audit.jsonl"):
+os.environ["WIFIDECK_DB"] = "/tmp/wifideck-test/wifideck.db"
+for _p in (
+    "/tmp/wifideck-test/scope.json",
+    "/tmp/wifideck-test/audit.jsonl",
+    "/tmp/wifideck-test/wifideck.db",
+):
     try:
         os.remove(_p)
     except OSError:
