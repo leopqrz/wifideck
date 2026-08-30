@@ -26,6 +26,13 @@ if [ "${WIFIDECK_SUDO:-0}" = "1" ]; then
   echo "→ backend will run as root (WIFIDECK_SUDO=1); sudo may prompt for your password"
 fi
 
+# Keep the state dir owned by you. A root (sudo) backend writes root-owned files
+# there; without this, the next plain (non-sudo) run can't write them and every
+# save 500s. On a sudo run we chown it back to you so both modes coexist.
+STATE_DIR="/tmp/wifideck"
+mkdir -p "$STATE_DIR" 2>/dev/null || true
+[ -n "$SUDO" ] && $SUDO chown -R "$(id -un):$(id -gn)" "$STATE_DIR" 2>/dev/null || true
+
 open_url() { (xdg-open "$1" >/dev/null 2>&1 || sensible-browser "$1" >/dev/null 2>&1 || echo "  open $1 in your browser") & }
 
 # 1. Production: the service is already running -> just open it.

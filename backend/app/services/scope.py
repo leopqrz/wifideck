@@ -37,9 +37,14 @@ class ScopeList:
             self._targets = {}
 
     def _save(self) -> None:
-        os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
-        with open(self.path, "w") as f:
-            json.dump([t.model_dump() for t in self._targets.values()], f, indent=2)
+        # Degrade gracefully: if the state dir isn't writable, keep the in-memory
+        # scope (still enforced this session) rather than 500-ing the action.
+        try:
+            os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+            with open(self.path, "w") as f:
+                json.dump([t.model_dump() for t in self._targets.values()], f, indent=2)
+        except OSError:
+            pass
 
     def list(self) -> list[ScopeTarget]:
         return sorted(self._targets.values(), key=lambda t: t.added, reverse=True)

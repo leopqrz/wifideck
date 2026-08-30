@@ -14,6 +14,7 @@ def _now() -> str:
 class AuditLog:
     def __init__(self, path: str) -> None:
         self.path = path
+        self._mem: list[AuditEntry] = []  # fallback when the log file isn't writable
 
     def record(
         self,
@@ -34,23 +35,33 @@ class AuditLog:
             channel=channel,
             detail=detail,
         )
-        os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
-        with open(self.path, "a") as f:
-            f.write(entry.model_dump_json() + "\n")
+        self._mem.append(entry)
+        self._mem = self._mem[-500:]
+        # Degrade gracefully: an unwritable log must not 500 the action it records.
+        try:
+            os.makedirs(os.path.dirname(self.path) or ".", exist_ok=True)
+            with open(self.path, "a") as f:
+                f.write(entry.model_dump_json() + "\n")
+        except OSError:
+            pass
         return entry
 
     def recent(self, limit: int = 100) -> list[AuditEntry]:
-        if not os.path.isfile(self.path):
-            return []
-        with open(self.path, errors="replace") as f:
-            lines = f.readlines()
-        out: list[AuditEntry] = []
-        for line in lines[-limit:]:
-            line = line.strip()
-            if line:
-                try:
-                    out.append(AuditEntry.model_validate_json(line))
-                except ValueError:
-                    continue
-        out.reverse()  # newest first
-        return out
+        if os.path.isfile(self.path):
+            try:
+                with open(self.path, errors="replace") as f:
+                    lines = f.readlines()
+                out: list[AuditEntry] = []
+                for line in lines[-limit:]:
+                    line = line.strip()
+                    if line:
+                        try:
+                            out.append(AuditEntry.model_validate_json(line))
+                        except ValueError:
+                            continue
+                out.reverse()  # newest first
+                return out
+            except OSError:
+                pass
+        # fallback: in-memory records (newest first)
+        return list(reversed(self._mem[-limit:]))
