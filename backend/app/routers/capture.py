@@ -9,9 +9,11 @@ from pydantic import BaseModel, Field
 
 from ..auth import require_token
 from ..config import settings
-from ..deps import get_capture_service, get_status_service
+from ..deps import get_capture_service, get_handshake_verifier, get_status_service
+from ..models.handshake import HandshakeInfo
 from ..models.session import CaptureDetail, CaptureSession
 from ..services.capture import CaptureBusy, CaptureError, CaptureService
+from ..services.handshake import HandshakeVerifier
 from ..services.status import StatusService
 
 router = APIRouter()
@@ -86,3 +88,14 @@ async def download_pcap(
     if not path or not os.path.isfile(path):
         raise HTTPException(status_code=404, detail="No pcap for this session yet.")
     return FileResponse(path, media_type="application/vnd.tcpdump.pcap", filename=f"{sid}.cap")
+
+
+@router.get("/api/capture/{sid}/handshake", response_model=HandshakeInfo)
+async def capture_handshake(
+    sid: str,
+    _: bool = Depends(require_token),
+    svc: CaptureService = Depends(get_capture_service),
+    verifier: HandshakeVerifier = Depends(get_handshake_verifier),
+) -> HandshakeInfo:
+    """Verify (via tshark) which EAPOL messages / PMKID a session's pcap holds."""
+    return await verifier.verify(svc.pcap_path(sid))

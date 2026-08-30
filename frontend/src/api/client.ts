@@ -247,6 +247,19 @@ export const getActive = () => apiGet<{ enabled: boolean }>("/api/active");
 export const getKnownNetworks = () =>
   apiGet<{ saved_at: string | null; networks: Network[] }>("/api/scan/known");
 
+export interface HandshakeInfo {
+  eapol_messages: number[];
+  frames: number;
+  has_pmkid: boolean;
+  has_handshake: boolean;
+  crackable: boolean;
+  note: string;
+}
+
+// tshark verification of a capture's pcap — which EAPOL messages / PMKID it holds.
+export const getHandshakeInfo = (sid: string) =>
+  apiGet<HandshakeInfo>(`/api/capture/${encodeURIComponent(sid)}/handshake`);
+
 export async function addScope(
   bssid: string,
   ssid?: string,

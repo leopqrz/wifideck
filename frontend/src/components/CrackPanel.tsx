@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import {
   addScope,
   getCaptures,
+  getHandshakeInfo,
   startCrack,
   stopCrack,
   type CaptureSession,
   type CrackStatus,
+  type HandshakeInfo,
 } from "../api/client";
 import { SessionPicker } from "./SessionPicker";
 import { StatusPill } from "./StatusPill";
@@ -31,6 +33,7 @@ export function CrackPanel({
   const [wordlist, setWordlist] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hs, setHs] = useState<HandshakeInfo | null>(null);
 
   useEffect(() => {
     getCaptures()
@@ -44,6 +47,21 @@ export function CrackPanel({
     const match = sessions.find((s) => s.target_bssid === targetBssid);
     if (match) setSession(match.id);
   }, [sessions, targetBssid, session]);
+
+  // Verify the selected capture with tshark before you spend a crack run on it.
+  useEffect(() => {
+    if (!session) {
+      setHs(null);
+      return;
+    }
+    let cancelled = false;
+    getHandshakeInfo(session)
+      .then((info) => !cancelled && setHs(info))
+      .catch(() => !cancelled && setHs(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
 
   const running = crack?.state === "running";
   const state = crack?.state ?? "idle";
@@ -119,6 +137,8 @@ export function CrackPanel({
         </div>
       )}
 
+      {!running && session && hs && <HandshakeBadge hs={hs} />}
+
       {crack && crack.state !== "idle" && (
         <div className="mt-4">
           <div className="flex items-center justify-between font-mono text-xs text-muted">
@@ -157,6 +177,37 @@ export function CrackPanel({
       )}
 
       {error && <p className="mt-3 font-mono text-xs text-crit">{error}</p>}
+    </div>
+  );
+}
+
+// tshark verification of the selected capture — which 4-way messages / PMKID it
+// holds, so you don't burn a crack run on a partial capture.
+function HandshakeBadge({ hs }: { hs: HandshakeInfo }) {
+  const toneCls = hs.crackable ? "text-ok" : hs.frames ? "text-warn" : "text-faint";
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+      <span className="uppercase tracking-hud text-faint">tshark:</span>
+      {[1, 2, 3, 4].map((m) => {
+        const on = hs.eapol_messages.includes(m);
+        return (
+          <span
+            key={m}
+            className={`rounded border px-1.5 py-0.5 ${on ? "border-ok/40 text-ok" : "border-line-soft text-faint"}`}
+          >
+            M{m}
+            {on ? " ✓" : ""}
+          </span>
+        );
+      })}
+      <span
+        className={`rounded border px-1.5 py-0.5 ${hs.has_pmkid ? "border-ok/40 text-ok" : "border-line-soft text-faint"}`}
+      >
+        PMKID{hs.has_pmkid ? " ✓" : ""}
+      </span>
+      <span className={`ml-1 ${toneCls}`}>
+        {hs.crackable ? "✓ crackable" : "✗ not crackable"} — {hs.note}
+      </span>
     </div>
   );
 }

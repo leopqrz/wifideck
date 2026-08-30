@@ -1,0 +1,79 @@
+# WiFiDeck — Build log & roadmap tracker
+
+Living tracker for the "modernize everything" build. We go **one phase at a time:
+develop → test → commit → next.** Unblocked phases first; blocked ones wait on the
+upgrades listed below.
+
+_Last updated: 2026-08-30._
+
+## Available resources
+
+| Resource | Use |
+|---|---|
+| **Mac M4 Pro Max, 64 GB** | dev host; **hashcat GPU cracking** (Apple Silicon Metal), model training/inference |
+| **Jetson Orin Nano 8 GB** | edge **ML inference** (device fingerprinting / anomaly WIDS), always-on sensor node |
+| **AWS** | heavier model training, GPU crack bursts, wordlist/rule storage |
+| **ALFA AWUS036ACH (RTL8812AU, `rtw88`)** | current radio — MANAGED scan OK; **monitor/inject unreliable**; **no AP mode** |
+| Willing to invest | new radios, GPS, more compute as phases need them |
+
+## Status legend
+
+✅ done · 🔨 in progress · ⬜ todo (unblocked) · ⛔ blocked (needs upgrade) · 🧪 built, needs hardware to validate
+
+## Phase status
+
+| # | Phase | Status | Hardware / upgrade needed |
+|---|---|---|---|
+| 0–13 | core through click-to-connect | ✅ | — (shipped, v2.5) |
+| — | security-mode readout (part of 27) | ✅ | — (shipped, v2.6) |
+| **28** | **tshark handshake verification** | ✅ | none — CPU/tshark only |
+| 20 | SQLite persistence & history | 🔨 | none |
+| 14 | hashcat mode 22000 cracking | ⬜ | none to build; **GPU (M4 Metal / AWS)** to run fast |
+| 15 | PMKID clientless capture (hcxdumptool) | 🧪 | build unblocked; **live capture needs working monitor** |
+| 27 | WPA3 / SAE posture & recon | ⬜ | none (software) |
+| 22 | reporting & export (HTML/PDF) | ⬜ | none |
+| 16 | client/station intelligence | 🧪 | build unblocked; live data needs monitor |
+| 18 | defensive detections++ | 🧪 | detections need monitor; rules/UI unblocked |
+| 19 | notifications & integrations | ⬜ | none (webhooks/ntfy/Prometheus) |
+| 21 | scheduling & automation | ⬜ | none |
+| 24 | packaging & distribution | ⬜ | none |
+| 25 | E2E tests & mock-hardware CI | ⬜ | none |
+| 23 | multi-user / RBAC | ⬜ | none (software) |
+| **29** | **ML: device fingerprinting + anomaly WIDS** (new) | ⬜ | **Jetson / AWS** for training + edge inference |
+| 13 | multi-adapter support | ⛔ | **2nd Wi-Fi adapter** |
+| 26 | WPA3 transition-mode downgrade | ⛔ | **AP-mode-capable adapter** (see upgrades) |
+| 17 | GPS / wardriving | ⛔ | **GPS dongle** (or phone GPS bridge) |
+
+## Upgrades we'll likely want (my recommendations)
+
+1. **A modern radio that actually injects + does AP mode** — the single biggest
+   unlock. The `rtw88`/RTL8812AU is the bottleneck behind half the offensive phases.
+   Best 2026 pick: a **MediaTek MT7921U / MT7925**-based adapter (e.g. ALFA
+   **AWUS036AXML**, Wi-Fi 6/6E) — excellent in-kernel `mt76` monitor + injection +
+   AP mode, and it can see **WPA3 / 6 GHz** networks the 8812au can't. Unblocks 13,
+   26, reliable 14/15/16/18. _(Alternatively fix the 8812au DKMS driver for kernel
+   7.1, but a new radio is more reliable and future-proof.)_
+2. **GPS dongle** (any u-blox USB) — unblocks 17 (wardriving/mapping).
+3. **Nothing else needed for compute** — the M4 (Metal) handles hashcat; the Jetson
+   handles edge ML; AWS covers training/bursts. Good to go.
+
+## Where AI/ML genuinely helps (Phase 29, new)
+
+Not bolted-on hype — real, modern uses:
+- **Device fingerprinting** — classify vendor/OS/device-type from probe requests,
+  MAC-randomization patterns, and IE fingerprints (the "who's around" view, smarter).
+- **Anomaly-based WIDS** — learn your environment's baseline and flag deviations
+  (evil-twin, karma, new rogue) instead of only fixed-threshold rules.
+- **Edge inference on the Jetson Orin Nano** — run the models on the sensor node,
+  train on AWS, ship the weights. Modern, and it's exactly what the Jetson is for.
+
+## Running log
+
+- **2026-08-30** — Kicked off the full build. Set order: **28 → 20 → 14 → 15 → 27 →
+  22 → 16 → 19 → 18 → 21 → 24 → 25 → 23 → 29**, then the ⛔ hardware phases once the
+  radio/GPS land. Started **Phase 28 (tshark handshake verification)**.
+- **2026-08-30** — ✅ **Phase 28 done.** `HandshakeVerifier` service + `parse_eapol`
+  classifier (M1–M4 from the EAPOL Key-Info bits, PMKID heuristic), `GET
+  /api/capture/{sid}/handshake`, and a `tshark:` badge in the Crack panel showing
+  `M1 M2 M3 M4 / PMKID / crackable?` for the selected capture. 7 backend + 47
+  frontend tests. Next: **Phase 20 (SQLite persistence)**.

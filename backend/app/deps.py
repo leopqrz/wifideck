@@ -9,6 +9,7 @@ from .services.connect import ConnectService
 from .services.crack import CrackService
 from .services.driver import DriverService
 from .services.flow import CaptureFlowService
+from .services.handshake import HandshakeVerifier
 from .services.known import KnownNetworks
 from .services.mode import ModeService
 from .services.runner import CommandRunner
@@ -73,6 +74,10 @@ _capture_service = CaptureService(
 
 def get_capture_service() -> CaptureService:
     return _capture_service
+
+
+def get_handshake_verifier() -> HandshakeVerifier:
+    return HandshakeVerifier(CommandRunner(mock=settings.mock), mock=settings.mock)
 
 
 # ShareService keeps the mock on/off flag, so it's a shared singleton too.
