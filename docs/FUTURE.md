@@ -86,6 +86,63 @@ unit + build; hardware paths are manual).
 
 ---
 
+## Track E — WPA3 & deep packet analysis
+
+> Context: a full sourced literature review of WPA3/SAE attacks (2026) informs
+> this track. Bottom line: a correctly-configured **WPA3-SAE** network (Hash-to-
+> Element, PMF on, no transition mode, patched, strong passphrase) has **no known
+> offline crack** — capturing the handshake yields nothing to grind against.
+> Everything practical attacks a *fallback* or a *misconfiguration*, not the crypto.
+> So this track is deliberately **not** "crack SAE" (that doesn't exist) — it's
+> transition-mode downgrade + posture awareness.
+
+> Shipped already: the **security-mode readout** in the Target bar (v2.6) flags
+> `OPEN` / `WEP` / `WPA2` / `WPA3-TRANSITION` / `WPA3 (SAE)` / enterprise, with a
+> one-line "why" — so you can see at a glance which networks are even attackable.
+> That's the first, defensive half of Phase 27 below.
+
+### Phase 26 · WPA3 transition-mode downgrade capture  — *L · offensive (gated)*
+The **one practical offline path** to a "WPA3" password. When an SSID runs WPA3 +
+WPA2 on the same passphrase (transition mode, very common), stand up a rogue
+**WPA2-only AP** (`hostapd`) with the same SSID/BSSID; a client that connects hands
+over the first EAPOL frames of a **WPA2** handshake → feed the existing crack
+pipeline (aircrack / Phase-14 hashcat). You're cracking the WPA2 fallback, not SAE.
+- **Gating:** same scope+authorization+audit as all offensive modules; loud "this
+  transmits a rogue AP" confirmation.
+- **Hardware caveat:** needs **AP mode** (master) on the adapter — the `rtw88_8812au`
+  driver may not support it; verify with `iw list` (look for "AP" under supported
+  interface modes) before building. May require the `8812au` DKMS driver.
+- **Defeated by:** the target using WPA3-only or *Transition Disable* — which is
+  exactly the finding to report on a hardened network.
+
+### Phase 27 · WPA3 / SAE posture & recon  — *S–M · defensive/recon (half shipped)*
+Grow the shipped security-readout into a full posture check per network:
+- confirm **PMF** required vs. capable; detect **transition mode** (SAE+PSK both
+  advertised); flag whether **H2E** is actually negotiated (support ≠ use on
+  2.4/5 GHz — it's guaranteed only on 6 GHz);
+- **Dragonblood exposure hint** from firmware age / hunting-and-pecking negotiation
+  (CVE-2019-9494 / -13377 — closed on patched stacks);
+- a per-network "attackability" verdict: offline path? online-only? none?
+- **Not on the roadmap:** offline SAE cracking — no published method, tool, or CVE
+  exists as of 2026, so we won't pretend to ship one.
+
+### Phase 28 · Wireshark / tshark deep packet analysis  — *M · recon/quality*
+Today we use `tshark` for exactly one thing (deauth-flood counting in WIDS). Put
+Wireshark's engine to real work on captures:
+- **Handshake verification** — before cracking, run `tshark` on the pcap to confirm
+  a *complete* 4-way handshake (all 4 EAPOL messages present) or a valid **PMKID**,
+  and show which EAPOL messages (M1–M4) were caught. Stops you wasting a crack run
+  on a partial capture. (Right now "handshake ✓" comes from airodump's heuristic;
+  this verifies it independently.)
+- **Capture summary** — post-capture `tshark` rollup: APs, stations, EAPOL count,
+  beacons, data frames, encryption seen.
+- **Live packet view** — a lightweight streaming packet list during capture
+  (`tshark -T fields`), read-only, in the UI.
+- **"Open in Wireshark"** — the pcap download already exists; add a hint/command to
+  open the `.cap` in the full Wireshark GUI for manual deep-dives.
+
+---
+
 ## Suggested ordering
 
 If/when you resume, a sensible sequence:
@@ -93,8 +150,12 @@ If/when you resume, a sensible sequence:
    simultaneous managed+monitor.
 2. **20 (SQLite history)** — foundation the reporting/scheduling phases build on.
 3. **14 (hashcat)** + **15 (PMKID)** — round out the offensive pipeline.
-4. **18 + 19 (defense++ / alerting)** — grow the WIDS.
-5. **22 (reporting)**, **24 (packaging)**, **25 (E2E)** — product polish.
+4. **28 (Wireshark/tshark)** — cheap, high-value: verify handshakes before cracking
+   and see what you actually captured. Good next step after using the current flow.
+5. **27 (WPA3 posture)** — small, builds on the shipped security readout.
+6. **18 + 19 (defense++ / alerting)** — grow the WIDS.
+7. **26 (WPA3 downgrade)** — only if your adapter supports AP mode (check `iw list`).
+8. **22 (reporting)**, **24 (packaging)**, **25 (E2E)** — product polish.
 
 Reorder freely — this is for your review, not a commitment. All offensive phases
 inherit the existing Phase-7 guardrails (scope allowlist + explicit authorization
