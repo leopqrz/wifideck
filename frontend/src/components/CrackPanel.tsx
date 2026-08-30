@@ -37,10 +37,24 @@ export function CrackPanel({
   const [error, setError] = useState<string | null>(null);
   const [hs, setHs] = useState<HandshakeInfo | null>(null);
 
+  // Load capturable sessions, and keep polling so ones captured after this panel
+  // mounted (e.g. from the guided flow) show up without a manual reload.
   useEffect(() => {
-    getCaptures()
-      .then((s) => setSessions(s.filter((x) => x.pcap_available)))
-      .catch(() => setSessions([]));
+    let cancelled = false;
+    const load = () =>
+      getCaptures()
+        .then((s) => {
+          if (!cancelled) setSessions(s.filter((x) => x.pcap_available));
+        })
+        .catch(() => {
+          /* leave the last list in place */
+        });
+    load();
+    const t = setInterval(load, 4000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
   }, [crack?.state]);
 
   // Default to the capture that matches the shared Target, if one exists.
