@@ -19,7 +19,13 @@ const STATE_TONE: Record<string, "ok" | "warn" | "crit" | "accent" | "muted"> = 
   idle: "muted",
 };
 
-export function CrackPanel({ crack }: { crack: CrackStatus | null }) {
+export function CrackPanel({
+  crack,
+  targetBssid,
+}: {
+  crack: CrackStatus | null;
+  targetBssid?: string;
+}) {
   const [sessions, setSessions] = useState<CaptureSession[]>([]);
   const [session, setSession] = useState("");
   const [wordlist, setWordlist] = useState("");
@@ -31,6 +37,13 @@ export function CrackPanel({ crack }: { crack: CrackStatus | null }) {
       .then((s) => setSessions(s.filter((x) => x.pcap_available)))
       .catch(() => setSessions([]));
   }, [crack?.state]);
+
+  // Default to the capture that matches the shared Target, if one exists.
+  useEffect(() => {
+    if (session || !targetBssid) return;
+    const match = sessions.find((s) => s.target_bssid === targetBssid);
+    if (match) setSession(match.id);
+  }, [sessions, targetBssid, session]);
 
   const running = crack?.state === "running";
   const state = crack?.state ?? "idle";

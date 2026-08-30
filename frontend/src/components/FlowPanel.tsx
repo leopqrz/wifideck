@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   addScope,
   startFlow,
@@ -7,7 +7,6 @@ import {
   type FlowStatus,
   type Network,
 } from "../api/client";
-import { NetworkPicker } from "./NetworkPicker";
 import { StatusPill } from "./StatusPill";
 
 const STATE_TONE: Record<string, "ok" | "warn" | "crit" | "accent" | "muted"> = {
@@ -20,13 +19,14 @@ const STATE_TONE: Record<string, "ok" | "warn" | "crit" | "accent" | "muted"> = 
 };
 
 export function FlowPanel({
-  networks,
+  target,
+  targetNet,
   flow,
 }: {
-  networks: Network[];
+  target: string;
+  targetNet: Network | null;
   flow: FlowStatus | null;
 }) {
-  const [target, setTarget] = useState(""); // bssid
   const [channel, setChannel] = useState("");
   const [count, setCount] = useState("8");
   const [error, setError] = useState<string | null>(null);
@@ -35,15 +35,13 @@ export function FlowPanel({
   const running = flow?.state === "running";
   const state = flow?.state ?? "idle";
 
-  function pick(bssid: string) {
-    setTarget(bssid);
-    const n = networks.find((x) => x.bssid === bssid);
-    if (n?.channel) setChannel(String(n.channel));
-  }
+  // Channel follows the shared target (still editable before you run).
+  useEffect(() => {
+    if (targetNet?.channel != null) setChannel(String(targetNet.channel));
+  }, [targetNet]);
 
   async function start() {
-    const n = networks.find((x) => x.bssid === target);
-    const name = n?.ssid ?? target;
+    const name = targetNet?.ssid ?? target;
     if (
       !window.confirm(
         `Run the guided capture flow on "${name}"?\n\nIt switches to MONITOR and sends deauth frames, briefly disconnecting devices on that network. Only do this on a network you own or are authorized to test.`,
@@ -53,7 +51,7 @@ export function FlowPanel({
     setError(null);
     setBusy(true);
     try {
-      await addScope(target, n?.ssid ?? undefined);
+      await addScope(target, targetNet?.ssid ?? undefined);
       await startFlow(target, Number(channel), true, Number(count) || 8);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -92,8 +90,14 @@ export function FlowPanel({
       {!running && (
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
-            <span className="font-mono text-[10px] uppercase tracking-hud text-faint">network</span>
-            <NetworkPicker networks={networks} value={target} onChange={pick} />
+            <span className="font-mono text-[10px] uppercase tracking-hud text-faint">target</span>
+            <div className="flex h-[34px] items-center font-mono text-sm">
+              {target ? (
+                <span className="text-text">{targetNet?.ssid ?? target}</span>
+              ) : (
+                <span className="text-faint">pick a Target above first</span>
+              )}
+            </div>
           </div>
           <label className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-hud text-faint">
             channel
@@ -121,9 +125,7 @@ export function FlowPanel({
             Run flow
           </button>
           <p className="w-full font-mono text-[10px] text-faint">
-            {networks.length
-              ? "targets from your last MANAGED scan — channel fills in automatically"
-              : "no saved networks yet — switch to MANAGED once to scan, then come back"}
+            channel fills in from the Target above — you can override it here
           </p>
         </div>
       )}

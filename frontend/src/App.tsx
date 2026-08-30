@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { TopRail } from "./components/TopRail";
 import { HealthBanner } from "./components/HealthBanner";
 import { AdapterStatus } from "./components/AdapterStatus";
@@ -9,6 +10,7 @@ import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
 import { WatchdogPanel } from "./components/WatchdogPanel";
 import { WidsPanel } from "./components/WidsPanel";
+import { TargetSelector } from "./components/TargetSelector";
 import { ActivePanel } from "./components/ActivePanel";
 import { FlowPanel } from "./components/FlowPanel";
 import { CrackPanel } from "./components/CrackPanel";
@@ -41,6 +43,9 @@ export default function App() {
   // empty in MONITOR — each remembered network still carries its channel.
   const known = useKnownNetworks(status?.mode ?? null);
   const targets = scan.networks.length ? scan.networks : known;
+  // One shared target for all offensive functions — pick it once.
+  const [target, setTarget] = useState("");
+  const targetNet = targets.find((n) => n.bssid === target) ?? null;
   const { watchdog } = useWatchdog();
   const { flow } = useFlow();
   const { wids } = useWids();
@@ -117,10 +122,15 @@ export default function App() {
           <DriverPanel driver={driver} />
         </section>
 
+        <section className="pb-4">
+          <TargetSelector networks={targets} value={target} onChange={setTarget} />
+        </section>
+
         <section className="pb-16">
           <ActivePanel
             status={status}
-            networks={targets}
+            target={target}
+            targetNet={targetNet}
             enabled={active.enabled}
             scope={active.scope}
             audit={active.audit}
@@ -129,11 +139,11 @@ export default function App() {
         </section>
 
         <section className="pb-8">
-          <FlowPanel networks={targets} flow={flow} />
+          <FlowPanel target={target} targetNet={targetNet} flow={flow} />
         </section>
 
         <section className="pb-16">
-          <CrackPanel crack={crack} />
+          <CrackPanel crack={crack} targetBssid={target} />
         </section>
       </main>
 

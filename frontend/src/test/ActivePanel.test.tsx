@@ -14,31 +14,33 @@ const net: Network = {
   signal_pct: 80, signal_dbm: -50, security: ["WPA2"], is_current: false, clients: 0,
 };
 
-const target: ScopeTarget = { bssid: "AA:BB:CC:DD:EE:FF", ssid: "MyLab", note: null, added: "2026-08-28T00:00:00+00:00" };
+const scoped: ScopeTarget = { bssid: "AA:BB:CC:DD:EE:FF", ssid: "MyLab", note: null, added: "2026-08-28T00:00:00+00:00" };
 
 describe("ActivePanel", () => {
   it("shows the disabled notice when active modules are off", () => {
-    render(<ActivePanel status={monitor} networks={[net]} enabled={false} scope={[]} audit={[]} onChange={vi.fn()} />);
+    render(
+      <ActivePanel status={monitor} target="" targetNet={null} enabled={false} scope={[]} audit={[]} onChange={vi.fn()} />,
+    );
     expect(screen.getByText(/WIFIDECK_ENABLE_ACTIVE=1/)).toBeInTheDocument();
-    // no send button while disabled
     expect(screen.queryByRole("button", { name: /Send deauth/i })).not.toBeInTheDocument();
   });
 
   it("gates the deauth button until a target is picked", () => {
     render(
-      <ActivePanel status={monitor} networks={[net]} enabled={true} scope={[]} audit={[]} onChange={vi.fn()} />,
+      <ActivePanel status={monitor} target="" targetNet={null} enabled={true} scope={[]} audit={[]} onChange={vi.fn()} />,
     );
-    const send = screen.getByRole("button", { name: /Send deauth/i });
-    expect(send).toBeDisabled(); // nothing selected in the network dropdown yet
+    expect(screen.getByRole("button", { name: /Send deauth/i })).toBeDisabled();
+    expect(screen.getByText(/pick a Target above first/i)).toBeInTheDocument();
   });
 
   it("warns and disables when not in MONITOR mode", () => {
     render(
       <ActivePanel
         status={{ ...monitor, mode: "MANAGED" }}
-        networks={[net]}
+        target={net.bssid ?? ""}
+        targetNet={net}
         enabled={true}
-        scope={[target]}
+        scope={[scoped]}
         audit={[]}
         onChange={vi.fn()}
       />,
@@ -47,7 +49,9 @@ describe("ActivePanel", () => {
   });
 
   it("shows the empty-targets hint", () => {
-    render(<ActivePanel status={monitor} networks={[net]} enabled={true} scope={[]} audit={[]} onChange={vi.fn()} />);
+    render(
+      <ActivePanel status={monitor} target="" targetNet={null} enabled={true} scope={[]} audit={[]} onChange={vi.fn()} />,
+    );
     expect(screen.getByText(/none yet/i)).toBeInTheDocument();
   });
 });

@@ -8,18 +8,19 @@ import {
   type ScopeTarget,
   type Status,
 } from "../api/client";
-import { NetworkPicker } from "./NetworkPicker";
 
 export function ActivePanel({
   status,
-  networks,
+  target,
+  targetNet,
   enabled,
   scope,
   audit,
   onChange,
 }: {
   status: Status | null;
-  networks: Network[];
+  target: string;
+  targetNet: Network | null;
   enabled: boolean;
   scope: ScopeTarget[];
   audit: AuditEntry[];
@@ -41,7 +42,13 @@ export function ActivePanel({
       </p>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <DeauthSection status={status} networks={networks} enabled={enabled} onChange={onChange} />
+        <DeauthSection
+          status={status}
+          target={target}
+          targetNet={targetNet}
+          enabled={enabled}
+          onChange={onChange}
+        />
         <ScopeSection scope={scope} onChange={onChange} />
       </div>
 
@@ -92,16 +99,17 @@ function ScopeSection({ scope, onChange }: { scope: ScopeTarget[]; onChange: () 
 
 function DeauthSection({
   status,
-  networks,
+  target,
+  targetNet,
   enabled,
   onChange,
 }: {
   status: Status | null;
-  networks: Network[];
+  target: string;
+  targetNet: Network | null;
   enabled: boolean;
   onChange: () => void;
 }) {
-  const [target, setTarget] = useState(""); // bssid
   const [count, setCount] = useState("5");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -123,8 +131,7 @@ function DeauthSection({
   const canSend = !!target && monitor && !busy;
 
   async function send() {
-    const n = networks.find((x) => x.bssid === target);
-    const name = n?.ssid ?? target;
+    const name = targetNet?.ssid ?? target;
     if (
       !window.confirm(
         `Send ${Number(count) || 5} deauth frames to "${name}"?\n\nThis disconnects devices on that network. Only do this on a network you own or are authorized to test.`,
@@ -134,7 +141,7 @@ function DeauthSection({
     setMsg(null);
     setBusy(true);
     try {
-      await addScope(target, n?.ssid ?? undefined);
+      await addScope(target, targetNet?.ssid ?? undefined);
       const entry = await deauth(target, Number(count) || 5, true);
       setMsg(`sent · ${entry.detail ?? "ok"}`);
       onChange();
@@ -153,8 +160,18 @@ function DeauthSection({
           Switch to MONITOR mode first (deauth transmits and needs monitor).
         </p>
       )}
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <NetworkPicker networks={networks} value={target} onChange={setTarget} />
+      <p className="mt-2 font-mono text-[11px] text-muted">
+        {target ? (
+          <>
+            target: <span className="text-text">{targetNet?.ssid ?? target}</span>
+            {targetNet?.channel != null && ` · ch ${targetNet.channel}`}
+          </>
+        ) : (
+          <span className="text-faint">pick a Target above first</span>
+        )}
+      </p>
+      <label className="mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-hud text-faint">
+        frames
         <input
           inputMode="numeric"
           value={count}
@@ -162,12 +179,7 @@ function DeauthSection({
           className="w-16 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-xs text-text outline-none focus:border-accent"
           title="frame count"
         />
-      </div>
-      <p className="mt-1 font-mono text-[10px] text-faint">
-        {networks.length
-          ? "from your last MANAGED scan — each target carries its channel"
-          : "no saved networks yet — switch to MANAGED once to scan, then come back"}
-      </p>
+      </label>
       <button
         onClick={send}
         disabled={!canSend}
