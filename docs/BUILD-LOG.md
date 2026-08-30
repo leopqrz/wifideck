@@ -13,7 +13,7 @@ _Last updated: 2026-08-30._
 | **Mac M4 Pro Max, 64 GB** | dev host; **hashcat GPU cracking** (Apple Silicon Metal), model training/inference |
 | **Jetson Orin Nano 8 GB** | edge **ML inference** (device fingerprinting / anomaly WIDS), always-on sensor node |
 | **AWS** | heavier model training, GPU crack bursts, wordlist/rule storage |
-| **ALFA AWUS036ACH (RTL8812AU, `rtw88`)** | current radio — MANAGED scan OK; **monitor/inject unreliable**; **no AP mode** |
+| **ALFA AWUS036ACH (RTL8812AU, `rtw88`)** | current radio — MANAGED scan OK; **monitor RX + inject CONFIRMED DEAD** (2026-08-30: 0 beacons in 36s hopping; `aireplay --test` found 0 APs); **no AP mode** |
 | Willing to invest | new radios, GPS, more compute as phases need them |
 
 ## Status legend
@@ -71,6 +71,17 @@ Not bolted-on hype — real, modern uses:
   (evil-twin, karma, new rogue) instead of only fixed-threshold rules.
 - **Edge inference on the Jetson Orin Nano** — run the models on the sensor node,
   train on AWS, ship the weights. Modern, and it's exactly what the Jetson is for.
+
+## Real-capture verdict (2026-08-30)
+
+Tested the current adapter directly: `sudo airodump-ng wlan0` → **0 beacons / 0 APs**
+in 36s (channel-hopping worked, RX did not); `sudo aireplay-ng --test wlan0` →
+**Found 0 APs**. Conclusion: **RTL8812AU + rtw88 cannot do monitor capture or
+injection** — not fixable in software. Everything above the radio layer is
+validated (mock + live recon + full pipeline execution). **Real capture (Tier 3)
+is blocked until a capable radio.** Recommended: ALFA **AWUS036AXML** (MT7921U,
+in-kernel `mt76`) — monitor + inject + AP mode + WPA3/6 GHz. Software-only phases
+continue in the meantime.
 
 ## Running log
 
