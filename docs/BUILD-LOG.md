@@ -28,8 +28,8 @@ _Last updated: 2026-08-30._
 | — | security-mode readout (part of 27) | ✅ | — (shipped, v2.6) |
 | **28** | **tshark handshake verification** | ✅ | none — CPU/tshark only |
 | 14 | hashcat mode 22000 cracking | ✅ | built; **GPU (M4 Metal / AWS)** + `hashcat`/`hcxtools` to run |
-| 15 | PMKID clientless capture (hcxdumptool) | 🔨 | build unblocked; **live capture needs working monitor** |
-| 20 | SQLite persistence & history | ⬜ | none |
+| 15 | PMKID clientless capture (hcxdumptool) | 🧪 | built; **live capture needs working monitor + hcxdumptool** |
+| 20 | SQLite persistence & history | 🔨 | none |
 | 27 | WPA3 / SAE posture & recon | ⬜ | none (software) |
 | 22 | reporting & export (HTML/PDF) | ⬜ | none |
 | 16 | client/station intelligence | 🧪 | build unblocked; live data needs monitor |
@@ -86,4 +86,10 @@ Not bolted-on hype — real, modern uses:
   aircrack: `hcxpcapngtool` converts pcap → 22000 (PMKID + EAPOL), `hashcat -m 22000`
   with `--status-json` progress parsing (`parse_hashcat_status`), key read from the
   outfile. `engine` on the crack API/model + an **aircrack / hashcat** toggle in the
-  panel. 106 backend + 47 frontend tests. Next: **Phase 15 (PMKID capture)**, then 20.
+  panel. 106 backend + 47 frontend tests.
+- **2026-08-30** — 🧪 **Phase 15 done (build).** PMKID **clientless** capture: capture
+  gains a `mode` (handshake | pmkid); pmkid runs **hcxdumptool** → `.pcapng` (no
+  deauth). `mode` on the session model/API, a **handshake / PMKID** toggle in the
+  Capture panel, `pcap_path` now finds `.pcapng`, mock flags PMKID. 108 backend + 47
+  frontend tests. Live capture needs a working-monitor adapter + hcxdumptool
+  (`sudo apt install hcxdumptool`). Next: **Phase 20 (SQLite persistence)**.

@@ -6,7 +6,7 @@ import type { CaptureSession } from "../api/client";
 const sessions: CaptureSession[] = [
   {
     id: "20260829-000000", started: "2026-08-29T00:00:00+00:00", stopped: null,
-    running: false, channel: 44, target_bssid: "02:00:00:00:00:01",
+    running: false, mode: "handshake", channel: 44, target_bssid: "02:00:00:00:00:01",
     handshake: true, pmkid: false, ap_count: 1, client_count: 2, pcap_available: true,
   },
 ];

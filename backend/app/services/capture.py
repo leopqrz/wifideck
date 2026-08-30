@@ -70,7 +70,9 @@ class CaptureService:
     def active(self) -> CaptureSession | None:
         return self.sessions.get(self._active) if self._active else None
 
-    async def start(self, iface: str, channel: int | None, bssid: str | None) -> CaptureSession:
+    async def start(
+        self, iface: str, channel: int | None, bssid: str | None, mode: str = "handshake"
+    ) -> CaptureSession:
         if self.active and self.active.running:
             raise CaptureBusy()
 
@@ -80,6 +82,7 @@ class CaptureService:
             id=sid,
             started=datetime.now(timezone.utc).isoformat(timespec="seconds"),
             running=True,
+            mode="pmkid" if mode == "pmkid" else "handshake",
             channel=channel,
             target_bssid=bssid,
         )
@@ -87,12 +90,21 @@ class CaptureService:
         self._active = sid
 
         if not self.mock:
-            args = ["airodump-ng", "--output-format", "pcap,csv", "-w", self._prefix(sid)]
-            if channel is not None:
-                args += ["-c", str(channel)]
-            if bssid:
-                args += ["--bssid", bssid]
-            args.append(iface)
+            if session.mode == "pmkid":
+                # hcxdumptool grabs the PMKID clientless (an association request, no
+                # deauth). NB: hcxdumptool's CLI differs across versions — tune these
+                # flags for the one installed (this matches the 6.2.x series).
+                args = ["hcxdumptool", "-i", iface, "-o", self._prefix(sid) + ".pcapng",
+                        "--enable_status=1"]
+                if bssid:
+                    args += [f"--filterlist_ap={bssid}", "--filtermode=2"]
+            else:
+                args = ["airodump-ng", "--output-format", "pcap,csv", "-w", self._prefix(sid)]
+                if channel is not None:
+                    args += ["-c", str(channel)]
+                if bssid:
+                    args += ["--bssid", bssid]
+                args.append(iface)
             self._procs[sid] = await asyncio.create_subprocess_exec(
                 *args,
                 stdout=asyncio.subprocess.DEVNULL,
@@ -128,7 +140,10 @@ class CaptureService:
             nets = parse_airodump_csv(fixtures.AIRODUMP_CSV)
             session.ap_count = len(nets)
             session.client_count = sum(n.clients for n in nets)
-            session.handshake = True
+            if session.mode == "pmkid":
+                session.pmkid = True
+            else:
+                session.handshake = True
             session.pcap_available = True
             return nets
 
@@ -153,8 +168,11 @@ class CaptureService:
         return nets
 
     def pcap_path(self, sid: str) -> str | None:
+        # airodump writes capture-01.cap; hcxdumptool writes capture.pcapng.
         caps = sorted(
-            glob.glob(self._prefix(sid) + "-*.cap") + glob.glob(self._prefix(sid) + "-*.pcap")
+            glob.glob(self._prefix(sid) + "-*.cap")
+            + glob.glob(self._prefix(sid) + "-*.pcap")
+            + glob.glob(self._prefix(sid) + "*.pcapng")
         )
         return caps[-1] if caps else None
 

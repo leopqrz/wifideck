@@ -370,11 +370,14 @@ export async function setShare(enabled: boolean): Promise<ShareStatus> {
   return res.json();
 }
 
+export type CaptureMode = "handshake" | "pmkid";
+
 export interface CaptureSession {
   id: string;
   started: string;
   stopped: string | null;
   running: boolean;
+  mode: string;
   channel: number | null;
   target_bssid: string | null;
   handshake: boolean;
@@ -446,11 +449,12 @@ export async function stopCrack(): Promise<CrackStatus> {
 export async function startCapture(
   channel?: number | null,
   bssid?: string | null,
+  mode: CaptureMode = "handshake",
 ): Promise<CaptureSession> {
   const res = await fetch("/api/capture", {
     method: "POST",
     headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ channel: channel ?? null, bssid: bssid ?? null }),
+    body: JSON.stringify({ channel: channel ?? null, bssid: bssid ?? null, mode }),
   });
   if (!res.ok) {
     let detail = `capture ${res.status}`;

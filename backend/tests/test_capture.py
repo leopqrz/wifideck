@@ -57,6 +57,28 @@ def test_capture_lifecycle(client, auth_headers):
     assert stopped["running"] is False
 
 
+def test_pmkid_capture_mode(client, auth_headers):
+    r = client.post(
+        "/api/capture",
+        json={"mode": "pmkid", "bssid": "02:00:00:00:00:01"},
+        headers=auth_headers,
+    )
+    assert r.status_code == 200
+    sid = r.json()["id"]
+    assert r.json()["mode"] == "pmkid"
+    detail = client.get(f"/api/capture/{sid}", headers=auth_headers).json()
+    assert detail["pmkid"] is True  # mock refresh flags PMKID for pmkid mode
+    assert detail["handshake"] is False
+    client.post(f"/api/capture/{sid}/stop", headers=auth_headers)
+
+
+def test_capture_rejects_bad_mode(client, auth_headers):
+    assert (
+        client.post("/api/capture", json={"mode": "bogus"}, headers=auth_headers).status_code
+        == 422
+    )
+
+
 def test_capture_requires_token(client):
     assert client.post("/api/capture", json={}).status_code == 401
 

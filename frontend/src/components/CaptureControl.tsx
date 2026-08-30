@@ -4,6 +4,7 @@ import {
   stopCapture,
   downloadPcap,
   type CaptureDetail,
+  type CaptureMode,
   type Status,
 } from "../api/client";
 import { StatusPill } from "./StatusPill";
@@ -17,6 +18,7 @@ export function CaptureControl({
 }) {
   const [channel, setChannel] = useState("");
   const [bssid, setBssid] = useState("");
+  const [mode, setMode] = useState<CaptureMode>("handshake");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const monitor = status?.mode === "MONITOR";
@@ -26,7 +28,7 @@ export function CaptureControl({
     setError(null);
     setBusy(true);
     try {
-      await startCapture(channel ? Number(channel) : null, bssid || null);
+      await startCapture(channel ? Number(channel) : null, bssid || null, mode);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -76,6 +78,23 @@ export function CaptureControl({
             </p>
           )}
           <div className="mt-4 flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="font-mono text-[10px] uppercase tracking-hud text-faint">mode</span>
+              <div className="inline-flex overflow-hidden rounded border border-line">
+                {(["handshake", "pmkid"] as CaptureMode[]).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMode(m)}
+                    className={`px-3 py-1.5 font-mono text-xs ${
+                      mode === m ? "bg-accent/15 text-accent" : "text-muted hover:text-text"
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
             <label className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-hud text-faint">
               channel
               <input
@@ -103,6 +122,11 @@ export function CaptureControl({
               Start capture
             </button>
           </div>
+          <p className="mt-2 font-mono text-[10px] text-faint">
+            {mode === "pmkid"
+              ? "PMKID (hcxdumptool) — grabs the hash clientless: no deauth, no waiting for a client. Crack it with the hashcat engine."
+              : "Handshake (airodump) — waits for a 4-way handshake; pair with a deauth (or the guided flow) to trigger one."}
+          </p>
         </>
       )}
 

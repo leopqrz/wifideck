@@ -13,7 +13,7 @@ const monitor: Status = { ...managed, mode: "MONITOR", ssid: null };
 
 const running: CaptureDetail = {
   id: "20260828-030000", started: "2026-08-28T03:00:00", stopped: null, running: true,
-  channel: 157, target_bssid: null, handshake: true, pmkid: false,
+  mode: "handshake", channel: 157, target_bssid: null, handshake: true, pmkid: false,
   ap_count: 3, client_count: 5, pcap_available: true, networks: [],
 };
 

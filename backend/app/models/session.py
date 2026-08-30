@@ -11,6 +11,7 @@ class CaptureSession(BaseModel):
     started: str                    # ISO timestamp
     stopped: str | None = None
     running: bool = False
+    mode: str = "handshake"         # handshake (airodump) | pmkid (hcxdumptool, clientless)
     channel: int | None = None
     target_bssid: str | None = None
     handshake: bool = False

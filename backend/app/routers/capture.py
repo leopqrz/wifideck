@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
@@ -22,6 +23,7 @@ router = APIRouter()
 class CaptureRequest(BaseModel):
     channel: int | None = Field(default=None, ge=1, le=196)
     bssid: str | None = None
+    mode: Literal["handshake", "pmkid"] = "handshake"
 
 
 @router.post("/api/capture", response_model=CaptureSession)
@@ -39,7 +41,7 @@ async def start_capture(
             raise HTTPException(status_code=400, detail="No Wi-Fi interface.")
     iface = snap.interface or "wlan0"
     try:
-        return await svc.start(iface, req.channel, req.bssid)
+        return await svc.start(iface, req.channel, req.bssid, req.mode)
     except CaptureBusy:
         raise HTTPException(status_code=409, detail="A capture is already running.") from None
     except CaptureError as e:
