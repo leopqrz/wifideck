@@ -392,6 +392,7 @@ export const crackUrl = () => wsUrl("/ws/crack");
 
 export interface CrackStatus {
   state: string;
+  engine: string;
   session_id: string | null;
   bssid: string | null;
   wordlist: string | null;
@@ -401,6 +402,8 @@ export interface CrackStatus {
   key: string | null;
   message: string | null;
 }
+
+export type CrackEngine = "aircrack" | "hashcat";
 
 export async function getCaptures(): Promise<CaptureSession[]> {
   const res = await fetch("/api/capture", { headers: { Authorization: `Bearer ${getToken()}` } });
@@ -412,11 +415,12 @@ export async function startCrack(
   sessionId: string,
   wordlist: string | null,
   authorized: boolean,
+  engine: CrackEngine = "aircrack",
 ): Promise<CrackStatus> {
   const res = await fetch("/api/crack", {
     method: "POST",
     headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, wordlist: wordlist || null, authorized }),
+    body: JSON.stringify({ session_id: sessionId, wordlist: wordlist || null, authorized, engine }),
   });
   if (!res.ok) {
     let d = `crack ${res.status}`;

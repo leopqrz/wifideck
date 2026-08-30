@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 class CrackStatus(BaseModel):
     state: str            # idle / running / found / exhausted / failed / stopped
+    engine: str = "aircrack"     # aircrack | hashcat
     session_id: str | None = None
     bssid: str | None = None
     wordlist: str | None = None

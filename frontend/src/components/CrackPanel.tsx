@@ -6,6 +6,7 @@ import {
   startCrack,
   stopCrack,
   type CaptureSession,
+  type CrackEngine,
   type CrackStatus,
   type HandshakeInfo,
 } from "../api/client";
@@ -31,6 +32,7 @@ export function CrackPanel({
   const [sessions, setSessions] = useState<CaptureSession[]>([]);
   const [session, setSession] = useState("");
   const [wordlist, setWordlist] = useState("");
+  const [engine, setEngine] = useState<CrackEngine>("aircrack");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hs, setHs] = useState<HandshakeInfo | null>(null);
@@ -75,7 +77,7 @@ export function CrackPanel({
       // captured target is authorized, then run.
       const s = sessions.find((x) => x.id === session);
       if (s?.target_bssid) await addScope(s.target_bssid);
-      await startCrack(session, wordlist || null, true);
+      await startCrack(session, wordlist || null, true, engine);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -104,7 +106,7 @@ export function CrackPanel({
             Handshake cracking
           </span>
           <span className="font-mono text-[10px] uppercase tracking-hud text-faint">
-            aircrack-ng · scope-gated
+            aircrack / hashcat · scope-gated
           </span>
         </div>
         <StatusPill tone={STATE_TONE[state] ?? "muted"} label={state} live={running} />
@@ -127,6 +129,23 @@ export function CrackPanel({
               className="w-64 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-sm text-text outline-none focus:border-accent"
             />
           </label>
+          <div className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-hud text-faint">engine</span>
+            <div className="inline-flex overflow-hidden rounded border border-line">
+              {(["aircrack", "hashcat"] as CrackEngine[]).map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  onClick={() => setEngine(e)}
+                  className={`px-3 py-1.5 font-mono text-xs ${
+                    engine === e ? "bg-accent/15 text-accent" : "text-muted hover:text-text"
+                  }`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             onClick={start}
             disabled={!canStart}
@@ -134,6 +153,13 @@ export function CrackPanel({
           >
             Crack
           </button>
+          {engine === "hashcat" && (
+            <p className="w-full font-mono text-[10px] text-faint">
+              hashcat mode 22000 (GPU) — needs <span className="text-muted">hashcat</span> +{" "}
+              <span className="text-muted">hcxtools</span> installed; converts the pcap → 22000 and
+              cracks PMKID + handshake. Much faster on your M4 / a GPU box.
+            </p>
+          )}
         </div>
       )}
 

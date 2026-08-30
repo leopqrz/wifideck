@@ -5,6 +5,7 @@ import type { CrackStatus } from "../api/client";
 
 const found: CrackStatus = {
   state: "found",
+  engine: "aircrack",
   session_id: "20260829-000000",
   bssid: "02:00:00:00:00:01",
   wordlist: "/usr/share/wordlists/rockyou.txt",

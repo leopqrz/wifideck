@@ -12,6 +12,7 @@ from app.services.crack import (
     CrackRefused,
     CrackService,
     parse_aircrack_progress,
+    parse_hashcat_status,
 )
 from app.services.runner import CommandRunner
 from app.services.scope import ScopeList
@@ -56,6 +57,49 @@ def test_crack_found_in_mock():
     asyncio.run(svc._run(BSSID, "/tmp/wordlist.txt", None))
     assert svc.state == "found"
     assert svc.key == "mock-passphrase"
+
+
+def test_parse_hashcat_progress():
+    line = (
+        '{"session":"hashcat","status":3,"progress":[1024,14344384],'
+        '"recovered_hashes":[0,1],"devices":[{"device_id":1,"speed":500000}]}'
+    )
+    p = parse_hashcat_status(line)
+    assert p["tested"] == 1024
+    assert p["total"] == 14344384
+    assert p["rate"] == 500.0  # 500000 H/s → 500 k/s
+    assert "recovered" not in p
+
+
+def test_parse_hashcat_recovered_and_latest_wins():
+    text = (
+        '{"progress":[100,999],"recovered_hashes":[0,1],"devices":[]}\n'
+        '{"progress":[2048,999],"recovered_hashes":[1,1],"devices":[{"speed":1000000}]}'
+    )
+    p = parse_hashcat_status(text)
+    assert p["tested"] == 2048
+    assert p["rate"] == 1000.0
+    assert p["recovered"] is True
+
+
+def test_parse_hashcat_ignores_noise():
+    assert parse_hashcat_status("hashcat starting...\nnot json at all\n") == {}
+
+
+def test_start_sets_hashcat_engine():
+    svc, sid = _build(scoped=True)
+    st = asyncio.run(svc.start(sid, None, True, "hashcat"))
+    assert st.engine == "hashcat"
+    assert st.state == "running"
+    asyncio.run(svc.stop())
+
+
+def test_hashcat_mock_found_reports_engine():
+    svc, _ = _build(scoped=True)
+    svc.engine = "hashcat"
+    asyncio.run(svc._run(BSSID, "/tmp/wordlist.txt", None))
+    assert svc.state == "found"
+    assert "hashcat" in (svc.message or "")
 
 
 def test_crack_refused_not_in_scope():

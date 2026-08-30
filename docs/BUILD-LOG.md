@@ -27,9 +27,9 @@ _Last updated: 2026-08-30._
 | 0–13 | core through click-to-connect | ✅ | — (shipped, v2.5) |
 | — | security-mode readout (part of 27) | ✅ | — (shipped, v2.6) |
 | **28** | **tshark handshake verification** | ✅ | none — CPU/tshark only |
-| 20 | SQLite persistence & history | 🔨 | none |
-| 14 | hashcat mode 22000 cracking | ⬜ | none to build; **GPU (M4 Metal / AWS)** to run fast |
-| 15 | PMKID clientless capture (hcxdumptool) | 🧪 | build unblocked; **live capture needs working monitor** |
+| 14 | hashcat mode 22000 cracking | ✅ | built; **GPU (M4 Metal / AWS)** + `hashcat`/`hcxtools` to run |
+| 15 | PMKID clientless capture (hcxdumptool) | 🔨 | build unblocked; **live capture needs working monitor** |
+| 20 | SQLite persistence & history | ⬜ | none |
 | 27 | WPA3 / SAE posture & recon | ⬜ | none (software) |
 | 22 | reporting & export (HTML/PDF) | ⬜ | none |
 | 16 | client/station intelligence | 🧪 | build unblocked; live data needs monitor |
@@ -76,4 +76,9 @@ Not bolted-on hype — real, modern uses:
   classifier (M1–M4 from the EAPOL Key-Info bits, PMKID heuristic), `GET
   /api/capture/{sid}/handshake`, and a `tshark:` badge in the Crack panel showing
   `M1 M2 M3 M4 / PMKID / crackable?` for the selected capture. 7 backend + 47
-  frontend tests. Next: **Phase 20 (SQLite persistence)**.
+  frontend tests.
+- **2026-08-30** — ✅ **Phase 14 done.** hashcat **mode 22000** engine alongside
+  aircrack: `hcxpcapngtool` converts pcap → 22000 (PMKID + EAPOL), `hashcat -m 22000`
+  with `--status-json` progress parsing (`parse_hashcat_status`), key read from the
+  outfile. `engine` on the crack API/model + an **aircrack / hashcat** toggle in the
+  panel. 106 backend + 47 frontend tests. Next: **Phase 15 (PMKID capture)**, then 20.

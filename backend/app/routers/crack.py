@@ -1,6 +1,8 @@
 """Handshake-cracking endpoints."""
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
@@ -16,6 +18,7 @@ class CrackRequest(BaseModel):
     session_id: str
     wordlist: str | None = None
     authorized: bool = False
+    engine: Literal["aircrack", "hashcat"] = "aircrack"
 
 
 @router.post("/api/crack", response_model=CrackStatus)
@@ -25,7 +28,7 @@ async def start_crack(
     svc: CrackService = Depends(get_crack_service),
 ) -> CrackStatus:
     try:
-        return await svc.start(req.session_id, req.wordlist, req.authorized)
+        return await svc.start(req.session_id, req.wordlist, req.authorized, req.engine)
     except CrackBusy:
         raise HTTPException(status_code=409, detail="A crack job is already running.") from None
     except CrackNotFound:
