@@ -8,6 +8,7 @@ import {
   type ScopeTarget,
   type Status,
 } from "../api/client";
+import { networkLabel } from "../lib/networkLabel";
 
 export function ActivePanel({
   status,
@@ -163,7 +164,7 @@ function DeauthSection({
             .filter((n) => n.bssid)
             .map((n) => (
               <option key={n.bssid} value={n.bssid ?? ""}>
-                {(n.ssid ?? "<hidden>") + ` · ch ${n.channel ?? "?"} · ${n.bssid}`}
+                {networkLabel(n)}
               </option>
             ))}
         </select>

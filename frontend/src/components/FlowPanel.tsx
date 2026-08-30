@@ -7,6 +7,7 @@ import {
   type FlowStatus,
   type Network,
 } from "../api/client";
+import { networkLabel } from "../lib/networkLabel";
 import { StatusPill } from "./StatusPill";
 
 const STATE_TONE: Record<string, "ok" | "warn" | "crit" | "accent" | "muted"> = {
@@ -102,7 +103,7 @@ export function FlowPanel({
                 .filter((n) => n.bssid)
                 .map((n) => (
                   <option key={n.bssid} value={n.bssid ?? ""}>
-                    {(n.ssid ?? "<hidden>") + ` · ch ${n.channel ?? "?"} · ${n.bssid}`}
+                    {networkLabel(n)}
                   </option>
                 ))}
             </select>
