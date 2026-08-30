@@ -7,7 +7,7 @@ import {
   type FlowStatus,
   type Network,
 } from "../api/client";
-import { networkLabel } from "../lib/networkLabel";
+import { NetworkPicker } from "./NetworkPicker";
 import { StatusPill } from "./StatusPill";
 
 const STATE_TONE: Record<string, "ok" | "warn" | "crit" | "accent" | "muted"> = {
@@ -91,23 +91,10 @@ export function FlowPanel({
 
       {!running && (
         <div className="mt-4 flex flex-wrap items-end gap-3">
-          <label className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-hud text-faint">
-            network
-            <select
-              value={target}
-              onChange={(e) => pick(e.target.value)}
-              className="w-56 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-sm text-text outline-none focus:border-accent"
-            >
-              <option value="">pick a network…</option>
-              {networks
-                .filter((n) => n.bssid)
-                .map((n) => (
-                  <option key={n.bssid} value={n.bssid ?? ""}>
-                    {networkLabel(n)}
-                  </option>
-                ))}
-            </select>
-          </label>
+          <div className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-hud text-faint">network</span>
+            <NetworkPicker networks={networks} value={target} onChange={pick} />
+          </div>
           <label className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-hud text-faint">
             channel
             <input

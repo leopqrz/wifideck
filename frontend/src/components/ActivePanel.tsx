@@ -8,7 +8,7 @@ import {
   type ScopeTarget,
   type Status,
 } from "../api/client";
-import { networkLabel } from "../lib/networkLabel";
+import { NetworkPicker } from "./NetworkPicker";
 
 export function ActivePanel({
   status,
@@ -154,20 +154,7 @@ function DeauthSection({
         </p>
       )}
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <select
-          value={target}
-          onChange={(e) => setTarget(e.target.value)}
-          className="w-56 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-xs text-text outline-none focus:border-accent"
-        >
-          <option value="">pick a network…</option>
-          {networks
-            .filter((n) => n.bssid)
-            .map((n) => (
-              <option key={n.bssid} value={n.bssid ?? ""}>
-                {networkLabel(n)}
-              </option>
-            ))}
-        </select>
+        <NetworkPicker networks={networks} value={target} onChange={setTarget} />
         <input
           inputMode="numeric"
           value={count}
