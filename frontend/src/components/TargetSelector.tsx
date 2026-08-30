@@ -1,5 +1,13 @@
 import type { Network } from "../api/client";
+import { securityClass } from "../lib/securityClass";
 import { NetworkPicker } from "./NetworkPicker";
+
+const TONE: Record<string, string> = {
+  ok: "border-ok/40 text-ok",
+  warn: "border-warn/40 text-warn",
+  crit: "border-crit/40 text-crit",
+  muted: "border-line-soft text-muted",
+};
 
 // One place to choose the network you're testing. The choice (a BSSID) is shared
 // by the deauth and guided-capture panels below, so you pick it once. Shows the
@@ -14,6 +22,7 @@ export function TargetSelector({
   onChange: (bssid: string) => void;
 }) {
   const sel = networks.find((n) => n.bssid === value) ?? null;
+  const sec = sel ? securityClass(sel.security) : null;
   return (
     <div className="rounded-[10px] border border-accent/30 bg-accent/[0.04] p-5">
       <div className="flex items-center gap-3">
@@ -31,7 +40,13 @@ export function TargetSelector({
             <Chip>{sel.ssid ?? "<hidden>"}</Chip>
             <Chip>ch {sel.channel ?? "?"}</Chip>
             <Chip>{sel.band ?? "?"}</Chip>
-            <Chip>{sel.security.length ? sel.security.join("/") : "open"}</Chip>
+            {sec && (
+              <span
+                className={`rounded border px-2 py-0.5 font-mono text-[11px] font-semibold ${TONE[sec.tone]}`}
+              >
+                {sec.label}
+              </span>
+            )}
             <Chip faint>{sel.bssid}</Chip>
           </div>
         ) : (
@@ -42,6 +57,14 @@ export function TargetSelector({
           </span>
         )}
       </div>
+      {sec && sec.note && (
+        <p className="mt-2 font-mono text-[11px] text-faint">
+          <span className={TONE[sec.tone].split(" ").find((c) => c.startsWith("text-"))}>
+            {sec.label}
+          </span>{" "}
+          — {sec.note}
+        </p>
+      )}
     </div>
   );
 }
