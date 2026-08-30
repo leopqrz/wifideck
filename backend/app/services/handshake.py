@@ -108,5 +108,12 @@ class HandshakeVerifier:
             timeout=20,
         )
         if not res.ok:
-            return HandshakeInfo(note="tshark could not read this pcap (is tshark installed?)")
+            # tshark ran but couldn't parse it — almost always an empty/partial pcap
+            # (nothing was actually captured), not a missing tshark.
+            err = (res.stderr or "").lower()
+            if "not found" in err and "tshark" in err:
+                note = "tshark isn't installed (sudo apt install tshark)"
+            else:
+                note = "no handshake in this capture — the pcap looks empty (nothing was captured)"
+            return HandshakeInfo(note=note)
         return parse_eapol(res.stdout)
