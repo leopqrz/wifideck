@@ -7,6 +7,7 @@ import {
   type CaptureSession,
   type CrackStatus,
 } from "../api/client";
+import { SessionPicker } from "./SessionPicker";
 import { StatusPill } from "./StatusPill";
 
 const STATE_TONE: Record<string, "ok" | "warn" | "crit" | "accent" | "muted"> = {
@@ -80,21 +81,12 @@ export function CrackPanel({ crack }: { crack: CrackStatus | null }) {
 
       {!running && (
         <div className="mt-4 flex flex-wrap items-end gap-3">
-          <label className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-hud text-faint">
-            capture session
-            <select
-              value={session}
-              onChange={(e) => setSession(e.target.value)}
-              className="w-56 rounded border border-line bg-panel-2 px-2 py-1 font-mono text-sm text-text outline-none focus:border-accent"
-            >
-              <option value="">select a session with a pcap…</option>
-              {sessions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.id} · {s.target_bssid ?? "?"}{s.handshake ? " · handshake ✓" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-hud text-faint">
+              capture session
+            </span>
+            <SessionPicker sessions={sessions} value={session} onChange={setSession} />
+          </div>
           <label className="flex flex-col gap-1 font-mono text-[10px] uppercase tracking-hud text-faint">
             wordlist
             <input

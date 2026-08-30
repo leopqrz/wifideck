@@ -19,7 +19,7 @@ describe("CrackPanel", () => {
   it("offers Crack, disabled until a session is picked", () => {
     render(<CrackPanel crack={null} />);
     expect(screen.getByRole("button", { name: "Crack" })).toBeDisabled();
-    expect(screen.getByText(/select a session/i)).toBeInTheDocument();
+    expect(screen.getByText(/pick a capture/i)).toBeInTheDocument();
   });
 
   it("shows the found key and progress", () => {
