@@ -13,6 +13,7 @@ from .services.handshake import HandshakeVerifier
 from .services.history import HistoryStore
 from .services.known import KnownNetworks
 from .services.mode import ModeService
+from .services.notify import NotifyService
 from .services.runner import CommandRunner
 from .services.scan import ScanService
 from .services.scope import ScopeList
@@ -116,12 +117,25 @@ def get_audit_log() -> AuditLog:
     return _audit_log
 
 
+# Notifications — a shared sink dispatcher (webhook/ntfy/slack), off unless configured.
+_notify_service = NotifyService(
+    webhook_url=settings.webhook_url,
+    ntfy_url=settings.ntfy_url,
+    slack_url=settings.slack_url,
+)
+
+
+def get_notify_service() -> NotifyService:
+    return _notify_service
+
+
 _watchdog_service = WatchdogService(
     runner=CommandRunner(mock=settings.mock),
     status=StatusService(CommandRunner(mock=settings.mock)),
     interval=settings.watchdog_interval,
     mock=settings.mock,
     enabled=settings.watchdog_enabled,
+    notify=_notify_service,
 )
 
 
@@ -137,6 +151,7 @@ _wids_service = WidsService(
     deauth_threshold=settings.wids_deauth_threshold,
     mock=settings.mock,
     enabled=settings.wids_enabled,
+    notify=_notify_service,
 )
 
 

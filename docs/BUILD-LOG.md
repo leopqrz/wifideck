@@ -34,7 +34,7 @@ _Last updated: 2026-08-30._
 | 22 | reporting & export (HTML/PDF) | ✅ | none |
 | 16 | client/station intelligence | 🔨 | build unblocked; live data needs monitor |
 | 18 | defensive detections++ | 🧪 | detections need monitor; rules/UI unblocked |
-| 19 | notifications & integrations | ⬜ | none (webhooks/ntfy/Prometheus) |
+| 19 | notifications & integrations | ✅ | none (webhooks/ntfy/Prometheus) |
 | 21 | scheduling & automation | ⬜ | none |
 | 24 | packaging & distribution | ⬜ | none |
 | 25 | E2E tests & mock-hardware CI | ⬜ | none |
@@ -142,5 +142,12 @@ continue in the meantime.
   known networks + posture, capture sessions + crack outcomes, scope, and the audit
   trail into a self-contained styled **HTML** doc (print → PDF); `GET /api/report`
   (HTML) + `/api/report/data` (JSON); a **Report** panel (Open / Download .html).
-  +4 backend + 1 frontend test → 119 backend + 49 frontend, 6/6 invariants. **Next:
-  Phase 19 (notifications) or 16 (client intel).**
+  +4 backend + 1 frontend test → 119 backend + 49 frontend, 6/6 invariants.
+- **2026-08-30** — ✅ **Phase 19 done.** Notifications & integrations: `NotifyService`
+  (generic **webhook** / **ntfy** / **Slack** sinks, opt-in via env, per-message
+  cooldown to prevent spam) wired into WIDS alerts + watchdog recoveries;
+  `GET /api/notify` (enabled sinks) + `POST /api/notify/test`; a Prometheus
+  **`/metrics`** endpoint (token-gated) with up/active/session/handshake/pmkid/
+  cracked/watchdog/wids gauges; an **Integrations** panel (sinks + Send test).
+  +5 backend + 1 frontend test → **124 backend + 50 frontend, 6/6 invariants**.
+  **Next: Phase 16 (client/station intelligence) or 21 (scheduling).**

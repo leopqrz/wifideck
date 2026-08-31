@@ -287,6 +287,26 @@ export async function getReportHtml(): Promise<string> {
   return res.text();
 }
 
+export interface NotifyStatus {
+  sinks: string[];
+  last_error: string | null;
+}
+
+export const getNotify = () => apiGet<NotifyStatus>("/api/notify");
+
+export async function sendTestNotify(): Promise<{
+  sent: string[];
+  errors?: string[];
+  skipped?: string;
+}> {
+  const res = await fetch("/api/notify/test", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) throw new Error(`notify ${res.status}`);
+  return res.json();
+}
+
 export async function addScope(
   bssid: string,
   ssid?: string,

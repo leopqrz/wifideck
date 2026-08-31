@@ -38,12 +38,14 @@ class WatchdogService:
         interval: float,
         mock: bool,
         enabled: bool,
+        notify=None,
     ) -> None:
         self.runner = runner
         self.status = status
         self.interval = interval
         self.mock = mock
         self.enabled = enabled
+        self.notify = notify
         self._task: asyncio.Task | None = None
         self._events: deque[WatchdogEvent] = deque(maxlen=50)
         self.checks = 0
@@ -57,6 +59,15 @@ class WatchdogService:
     def _event(self, kind: str, detail: str, result: str) -> WatchdogEvent:
         e = WatchdogEvent(timestamp=_now(), kind=kind, detail=detail, result=result)
         self._events.appendleft(e)
+        # Notify on the meaningful drop/recovery events, not routine checks.
+        if self.notify and kind in ("recovered", "usb-absent", "usb-reset"):
+            try:
+                asyncio.get_running_loop().create_task(
+                    self.notify.send(f"Watchdog: {kind}", detail, level="high",
+                                     dedup_key=f"watchdog:{kind}")
+                )
+            except RuntimeError:
+                pass
         return e
 
     async def _driver_name(self, snap: Status) -> str:

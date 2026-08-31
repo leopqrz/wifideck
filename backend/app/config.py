@@ -63,6 +63,13 @@ class Settings:
     wids_interval: float = float(os.environ.get("WIFIDECK_WIDS_INTERVAL", "10"))
     wids_deauth_threshold: int = int(os.environ.get("WIFIDECK_WIDS_DEAUTH_THRESHOLD", "20"))
 
+    # --- Notifications & integrations --------------------------------------
+    # Push alerts (WIDS detections, watchdog recoveries) to any configured sink.
+    # All empty by default (no external calls). ntfy_url is a full topic URL.
+    webhook_url: str = os.environ.get("WIFIDECK_WEBHOOK_URL", "")
+    ntfy_url: str = os.environ.get("WIFIDECK_NTFY_URL", "")
+    slack_url: str = os.environ.get("WIFIDECK_SLACK_WEBHOOK", "")
+
     # --- Cracking (aircrack-ng) --------------------------------------------
     # Default wordlist for handshake cracking (Kali ships rockyou.txt.gz — gunzip it).
     wordlist: str = os.environ.get("WIFIDECK_WORDLIST", "/usr/share/wordlists/rockyou.txt")

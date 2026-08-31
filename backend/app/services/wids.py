@@ -68,6 +68,7 @@ class WidsService:
         deauth_threshold: int,
         mock: bool,
         enabled: bool,
+        notify=None,
     ) -> None:
         self.runner = runner
         self.scan = scan
@@ -76,6 +77,7 @@ class WidsService:
         self.deauth_threshold = deauth_threshold
         self.mock = mock
         self.enabled = enabled
+        self.notify = notify
         self._task: asyncio.Task | None = None
         self._alerts: deque[WidsAlert] = deque(maxlen=100)
         self._seen: set[tuple] = set()
@@ -86,6 +88,16 @@ class WidsService:
         self._alerts.appendleft(
             WidsAlert(timestamp=_now(), kind=kind, severity=severity, ssid=ssid, bssid=bssid, detail=detail)
         )
+        if self.notify:
+            try:
+                asyncio.get_running_loop().create_task(
+                    self.notify.send(
+                        f"WIDS: {kind}", detail, level=severity,
+                        dedup_key=f"wids:{kind}:{bssid or ssid or ''}",
+                    )
+                )
+            except RuntimeError:
+                pass  # no running loop (e.g. a direct unit-test call)
 
     async def _deauth_count(self, iface: str) -> int:
         r = await self.runner.run([
