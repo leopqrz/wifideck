@@ -1,12 +1,19 @@
 # WiFiDeck
 
-A local, web-based **command center** for the ALFA AWUS036ACH (RTL8812AU) and
-similar adapters. See live adapter state, flip **MANAGED ⇄ MONITOR**, scan, capture
-handshakes, share internet to the host, watch signal/throughput charts, and run
+A local, web-based **command center** for USB Wi-Fi adapters (RTL8812AU,
+MediaTek MT7921U / MT7612U, and similar). See live adapter state, flip
+**MANAGED ⇄ MONITOR**, scan, capture handshakes/PMKIDs, verify and crack them,
+share internet to the host, watch signal/throughput charts, and run
 authorization-gated active tests — all from a fast, dark, live dashboard in your
 browser. Binds to `127.0.0.1` only, token-authed.
 
-**Status: v2.5** — phases 0–13 complete. Full plan: [docs/PLAN.md](docs/PLAN.md).
+**Status:** phases 0–13 shipped (v2.5); since then the offensive pipeline was
+modernized — **hashcat mode 22000**, **PMKID clientless capture**, **tshark
+handshake verification**, **SQLite history**, and **WPA3 / security posture** —
+all validated in mock + live recon. Live RF **capture needs a monitor-capable
+radio** (see [docs/HARDWARE.md](docs/HARDWARE.md)); the current RTL8812AU/`rtw88`
+does MANAGED only. Plan: [docs/PLAN.md](docs/PLAN.md) · progress:
+[docs/BUILD-LOG.md](docs/BUILD-LOG.md).
 
 ![WiFiDeck dashboard](docs/screenshot.png)
 
@@ -17,15 +24,19 @@ browser. Binds to `127.0.0.1` only, token-authed.
 | **Status** | live USB/driver/mode/link/signal + health (disconnect & `-71` detection) |
 | **Mode** | MANAGED ⇄ MONITOR toggle with a serialized state machine |
 | **Scan** | live network table (nmcli in managed, airodump in monitor), sort/filter |
+| **Posture** | flags each network **WPA2 / WPA3 / WPA3-transition / open** and what it means for capture |
 | **Connect** | click any SSID to join/leave; NetworkManager saves the password |
-| **Capture** | airodump sessions, handshake/PMKID detection, pcap export |
-| **Share** | NAT the ALFA uplink to the host, with copyable macOS route/DNS commands |
+| **Target** | pick the network once — shared by deauth + guided capture |
+| **Capture** | airodump **handshake** *or* **PMKID clientless (hcxdumptool)** sessions, detection, pcap export |
+| **Verify** | tshark confirms a real 4-way handshake (M1–M4) or PMKID before you waste a crack |
+| **Cracking** | **aircrack-ng or hashcat (mode 22000)** vs a wordlist, scope-gated, live progress |
+| **History** | past capture sessions + crack outcomes persisted to **SQLite**, survive restarts |
+| **Share** | NAT the uplink to the host, with copyable macOS route/DNS commands |
 | **Charts** | signal & TX-rate sparklines; driver/DKMS panel with switch hints |
 | **Active** | deauth — off by default; pick a network, confirm once, every action audited |
 | **Watchdog** | auto-recover the `-71` USB drops (driver reload → USB reset → reconnect) |
 | **Guided flow** | one gated workflow: monitor → capture → deauth → handshake → export |
 | **Defense** | WIDS-lite — evil-twin + deauth-flood detection with an alerts timeline |
-| **Cracking** | aircrack-ng a captured handshake vs a wordlist, scope-gated, live progress |
 
 ## Quick start
 
@@ -76,18 +87,21 @@ with `python3 scripts/security_check.py`.
 ## Tests
 
 ```bash
-cd backend && PYTHONPATH=. pytest -q        # 92 tests
-cd frontend && npm run test && npm run lint # 36 tests
+cd backend && PYTHONPATH=. pytest -q        # 116 tests
+cd frontend && npm run test && npm run lint # 48 tests
 python3 scripts/security_check.py           # 6 security invariants
 ```
 
 ## Docs
 
 - [docs/OFFENSIVE.md](docs/OFFENSIVE.md) — **how to use deauth / guided capture / cracking**, with expected results
+- [docs/HARDWARE.md](docs/HARDWARE.md) — **radio buying & setup** (what to buy for real capture, and why) 
+- [docs/BUILD-LOG.md](docs/BUILD-LOG.md) — live roadmap/progress tracker
 - [docs/PLAN.md](docs/PLAN.md) — the full phased plan · [docs/FUTURE.md](docs/FUTURE.md) — candidate future phases
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/API.md](docs/API.md) · [docs/SECURITY.md](docs/SECURITY.md)
 - [docs/phases/](docs/phases/) — per-phase build notes + acceptance results
 - [`./wifideck`](wifideck) — launcher · [scripts/security_check.py](scripts/security_check.py) — security re-review
+  · [scripts/fix-8812au-driver.sh](scripts/fix-8812au-driver.sh) — (optional) RTL8812AU driver-build attempt
 
 ## License
 

@@ -30,9 +30,9 @@ _Last updated: 2026-08-30._
 | 14 | hashcat mode 22000 cracking | ✅ | built; **GPU (M4 Metal / AWS)** + `hashcat`/`hcxtools` to run |
 | 15 | PMKID clientless capture (hcxdumptool) | 🧪 | built; **live capture needs working monitor + hcxdumptool** |
 | 20 | SQLite persistence & history | ✅ | none |
-| 27 | WPA3 / SAE posture & recon | ⬜ | none (software) |
+| 27 | WPA3 / SAE posture & recon | ✅ | none (software) |
+| 16 | client/station intelligence | 🔨 | build unblocked; live data needs monitor |
 | 22 | reporting & export (HTML/PDF) | ⬜ | none |
-| 16 | client/station intelligence | 🧪 | build unblocked; live data needs monitor |
 | 18 | defensive detections++ | 🧪 | detections need monitor; rules/UI unblocked |
 | 19 | notifications & integrations | ⬜ | none (webhooks/ntfy/Prometheus) |
 | 21 | scheduling & automation | ⬜ | none |
@@ -109,4 +109,32 @@ continue in the meantime.
   records on start/stop, crack records on finish; `GET /api/history` joins each
   session with its latest crack; a **History** panel (when · mode · target ·
   captured · crack key) that survives restarts. `WIFIDECK_DB` config + conftest.
-  113 backend + 48 frontend tests. Next: **Phase 27 (WPA3 posture)**, then 22.
+  113 backend + 48 frontend tests.
+- **2026-08-30** — ✅ **Phase 27 done.** WPA3 / security **posture**: `securityClass`
+  maps a network's security to open / WPA2 / **WPA3-transition** / WPA3(-only), each
+  with a tone + one-line "what it means for capture" note; shown as a chip + readout
+  in the **Target** bar. (Detected the tester's own Queiroz as WPA3-transition live.)
+  +5 frontend tests.
+- **2026-08-30** — 🔧 **Robustness pass** (from live/mock testing): mock mode-switch
+  now reflects MONITOR/MANAGED in status (toggle no longer "hangs"); scope/audit
+  **degrade instead of 500** when the state dir isn't writable (root-owned
+  `/tmp/wifideck` from a prior sudo run) + launcher chowns it back; crack panel
+  **polls** so freshly-captured sessions appear; handshake-verify message no longer
+  blames tshark for an empty pcap. 116 backend + 48 frontend tests, 6/6 invariants.
+- **2026-08-30** — 🧪 **Real-hardware validation.** Mock: full capture→verify→crack→
+  history loop confirmed. Live: real scan, WPA3-transition detection, mode switch,
+  audit, guided-flow execution all ✅ — but **real capture empty** (adapter limit).
+- **2026-08-30** — 🔬 **8812au driver-port attempt (adapter side).** Reproduced the
+  aircrack `rtl88xxau` DKMS build as a user in a temp copy (no system changes) and
+  fixed **four** breakages for kernel 7.1: `EXTRA_CFLAGS`→`ccflags-y`, include paths
+  →`$(M)`, timer-API compat shim (`from_timer`/`del_timer_sync`), and disabling the
+  bridge/PPPoE code — then hit the **cfg80211 API overhaul** (~15 wireless callbacks
+  changed `net_device*`→`wireless_dev*`). **Verdict: not practical** to port to 7.1
+  (multi-day, fragile, more walls behind). Options: kernel ≤6.15 ($0) or a MediaTek
+  radio. Left the driver's `dkms.conf` cap for the user to restore.
+- **2026-08-30** — ✅ **Hardware decision: buy ALFA AWUS036AXML (MT7921U).** Confirmed
+  its driver (`mt7921u`) **and** the MT7612U driver (`mt76x2u`) already ship **in the
+  running kernel** → plug-and-play, no DKMS, no version breakage. Wrote
+  `docs/HARDWARE.md` (buy + setup + acceptance test) and `scripts/fix-8812au-driver.sh`
+  (the attempt, safe/reversible). **Next while it ships: software-only phases —
+  Phase 16 (client/station intelligence).**

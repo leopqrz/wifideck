@@ -67,7 +67,7 @@ class Settings:
     # Default wordlist for handshake cracking (Kali ships rockyou.txt.gz — gunzip it).
     wordlist: str = os.environ.get("WIFIDECK_WORDLIST", "/usr/share/wordlists/rockyou.txt")
 
-    version: str = "2.5.0"
+    version: str = "2.9.0"
 
 
 settings = Settings()
