@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import ws
 from .config import settings
-from .deps import get_watchdog_service, get_wids_service
+from .deps import get_scheduler_service, get_watchdog_service, get_wids_service
 from .routers import (
     active,
     capture,
@@ -29,6 +29,7 @@ from .routers import (
     notify,
     report,
     scan,
+    schedule,
     share,
     stations,
     status,
@@ -42,13 +43,16 @@ async def lifespan(app: FastAPI):
     # Auto-start background services that are enabled.
     wd = get_watchdog_service()
     wids_svc = get_wids_service()
+    scheduler = get_scheduler_service()
     if settings.watchdog_enabled and not settings.mock:
         wd.start()
     if settings.wids_enabled:  # evil-twin detection works from scans in any mode
         wids_svc.start()
+    scheduler.start()  # jobs are off by default; loop just idles until one is enabled
     yield
     await wd.stop()
     await wids_svc.stop()
+    await scheduler.stop()
 
 
 app = FastAPI(title="WiFiDeck", version=settings.version, lifespan=lifespan)
@@ -82,6 +86,7 @@ app.include_router(report.router)
 app.include_router(notify.router)
 app.include_router(metrics.router)
 app.include_router(stations.router)
+app.include_router(schedule.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

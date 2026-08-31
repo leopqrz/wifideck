@@ -16,6 +16,7 @@ from .services.mode import ModeService
 from .services.notify import NotifyService
 from .services.runner import CommandRunner
 from .services.scan import ScanService
+from .services.scheduler import SchedulerService
 from .services.scope import ScopeList
 from .services.share import ShareService
 from .services.stations import StationService
@@ -166,6 +167,34 @@ _wids_service = WidsService(
 
 def get_wids_service() -> WidsService:
     return _wids_service
+
+
+# Scheduler actions — each returns a short result string for the last-run display.
+async def _sched_scan() -> str:
+    nets = await ScanService(CommandRunner(mock=settings.mock)).scan_managed()
+    _known_networks.save(nets)
+    return f"{len(nets)} networks"
+
+
+async def _sched_wids() -> str:
+    await _wids_service.run_once()
+    return f"{_wids_service.status_info().alert_count} alerts"
+
+
+async def _sched_heartbeat() -> str:
+    import time as _t
+
+    r = await _notify_service.send("WiFiDeck", "scheduler heartbeat", dedup_key=f"hb:{_t.time()}")
+    return f"sent: {r.get('sent')}" if r.get("sent") else (r.get("skipped") or "no sinks")
+
+
+_scheduler_service = SchedulerService({
+    "scan": _sched_scan, "wids": _sched_wids, "heartbeat": _sched_heartbeat,
+})
+
+
+def get_scheduler_service() -> SchedulerService:
+    return _scheduler_service
 
 
 def get_active_service() -> ActiveService:

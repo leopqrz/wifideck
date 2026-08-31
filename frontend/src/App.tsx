@@ -18,6 +18,7 @@ import { CrackPanel } from "./components/CrackPanel";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { ReportPanel } from "./components/ReportPanel";
 import { IntegrationsPanel } from "./components/IntegrationsPanel";
+import { SchedulePanel } from "./components/SchedulePanel";
 import { TokenGate } from "./components/TokenGate";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
@@ -156,6 +157,10 @@ export default function App() {
 
         <section className="pb-8">
           <HistoryPanel refreshKey={crack?.state ?? ""} />
+        </section>
+
+        <section className="pb-8">
+          <SchedulePanel />
         </section>
 
         <section className="grid gap-4 pb-16 lg:grid-cols-2">

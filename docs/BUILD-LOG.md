@@ -35,7 +35,7 @@ _Last updated: 2026-08-30._
 | 16 | client/station intelligence | 🧪 | built + mock demo; live data needs monitor |
 | 18 | defensive detections++ | 🧪 | detections need monitor; rules/UI unblocked |
 | 19 | notifications & integrations | ✅ | none (webhooks/ntfy/Prometheus) |
-| 21 | scheduling & automation | ⬜ | none |
+| 21 | scheduling & automation | ✅ | none |
 | 24 | packaging & distribution | ⬜ | none |
 | 25 | E2E tests & mock-hardware CI | ⬜ | none |
 | 23 | multi-user / RBAC | ⬜ | none (software) |
@@ -158,4 +158,11 @@ continue in the meantime.
   /api/stations` + a **Stations ("who's around")** panel (MAC · vendor · signal · AP ·
   probes · pkts). Mock returns fixture stations so it's demoable now; real data needs
   the radio. +4 backend + 1 frontend test → **128 backend + 51 frontend, 6/6
-  invariants**. **Next: Phase 21 (scheduling) or 23 (RBAC).**
+  invariants**.
+- **2026-08-30** — ✅ **Phase 21 done.** Scheduling & automation: `SchedulerService`
+  runs named actions on an interval (rescan / WIDS sweep / heartbeat — all off by
+  default), with enable/interval/run-now and last-run/result tracking; started from
+  the app lifespan (idles until a job is enabled). `GET /api/schedule` +
+  `POST /api/schedule/{id}` + `/run`; a **Scheduler** panel (on/off · interval ·
+  Run now · last result). +5 backend + 1 frontend test → **133 backend + 52
+  frontend, 6/6 invariants**. **Next: Phase 23 (RBAC) or 25 (E2E/CI).**

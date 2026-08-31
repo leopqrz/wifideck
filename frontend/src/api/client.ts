@@ -307,6 +307,33 @@ export interface Station {
 
 export const getStations = () => apiGet<Station[]>("/api/stations");
 
+export interface Job {
+  id: string;
+  label: string;
+  action: string;
+  interval_sec: number;
+  enabled: boolean;
+  last_run: string | null;
+  last_result: string | null;
+  runs: number;
+}
+
+export const getSchedule = () => apiGet<Job[]>("/api/schedule");
+
+async function postJob(path: string, body?: object): Promise<Job> {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`schedule ${res.status}`);
+  return res.json();
+}
+
+export const updateJob = (id: string, body: { enabled?: boolean; interval_sec?: number }) =>
+  postJob(`/api/schedule/${id}`, body);
+export const runJob = (id: string) => postJob(`/api/schedule/${id}/run`);
+
 export async function sendTestNotify(): Promise<{
   sent: string[];
   errors?: string[];
