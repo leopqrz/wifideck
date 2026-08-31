@@ -37,7 +37,7 @@ _Last updated: 2026-08-30._
 | 19 | notifications & integrations | ✅ | none (webhooks/ntfy/Prometheus) |
 | 21 | scheduling & automation | ✅ | none |
 | 24 | packaging & distribution | ⬜ | none |
-| 25 | E2E tests & mock-hardware CI | ⬜ | none |
+| 25 | E2E tests & mock-hardware CI | ✅ | none |
 | 23 | multi-user / RBAC | ✅ | none (software) |
 | **29** | **ML: device fingerprinting + anomaly WIDS** (new) | ⬜ | **Jetson / AWS** for training + edge inference |
 | 13 | multi-adapter support | ⛔ | **2nd Wi-Fi adapter** |
@@ -178,4 +178,9 @@ continue in the meantime.
   wired into the WIDS loop (dedup'd); `POST`/`DELETE /api/wids/baseline`, `baseline`
   count in status, and baseline controls in the WIDS panel. Works from managed scans
   (no monitor needed). +3 backend tests → **140 backend + 52 frontend, 6/6
-  invariants**. **Next: Phase 25 (E2E/CI), then 29 (ML foundation).**
+  invariants**.
+- **2026-08-30** — ✅ **Phase 25 done.** E2E & CI: a **full-stack smoke test** that
+  walks mode → capture(PMKID) → verify → history → report → stations → schedule →
+  metrics → wids → rbac through the API in mock (defensive against shared-singleton
+  leakage); CI gains a **security** job running the 6-invariant check. **141 backend
+  tests.** **Next: Phase 29 (ML anomaly foundation).**
