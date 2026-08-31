@@ -168,16 +168,20 @@ class AirodumpScanner:
         )
 
     def read(self) -> list[Network]:
+        return parse_airodump_csv(self.read_raw())
+
+    def read_raw(self) -> str:
+        """Latest airodump CSV text (for station parsing); '' if none yet."""
         if not self.prefix:
-            return []
+            return ""
         files = sorted(glob.glob(self.prefix + "-*.csv"))
         if not files:
-            return []
+            return ""
         try:
             with open(files[-1], errors="replace") as f:
-                return parse_airodump_csv(f.read())
+                return f.read()
         except OSError:
-            return []
+            return ""
 
     async def stop(self) -> None:
         if self.proc and self.proc.returncode is None:

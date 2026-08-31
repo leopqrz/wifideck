@@ -30,6 +30,7 @@ from .routers import (
     report,
     scan,
     share,
+    stations,
     status,
     watchdog,
     wids,
@@ -80,6 +81,7 @@ app.include_router(history.router)
 app.include_router(report.router)
 app.include_router(notify.router)
 app.include_router(metrics.router)
+app.include_router(stations.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

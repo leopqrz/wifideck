@@ -32,7 +32,7 @@ _Last updated: 2026-08-30._
 | 20 | SQLite persistence & history | ✅ | none |
 | 27 | WPA3 / SAE posture & recon | ✅ | none (software) |
 | 22 | reporting & export (HTML/PDF) | ✅ | none |
-| 16 | client/station intelligence | 🔨 | build unblocked; live data needs monitor |
+| 16 | client/station intelligence | 🧪 | built + mock demo; live data needs monitor |
 | 18 | defensive detections++ | 🧪 | detections need monitor; rules/UI unblocked |
 | 19 | notifications & integrations | ✅ | none (webhooks/ntfy/Prometheus) |
 | 21 | scheduling & automation | ⬜ | none |
@@ -150,4 +150,12 @@ continue in the meantime.
   **`/metrics`** endpoint (token-gated) with up/active/session/handshake/pmkid/
   cracked/watchdog/wids gauges; an **Integrations** panel (sinks + Send test).
   +5 backend + 1 frontend test → **124 backend + 50 frontend, 6/6 invariants**.
-  **Next: Phase 16 (client/station intelligence) or 21 (scheduling).**
+- **2026-08-30** — 🧪 **Phase 16 done (build + mock demo).** Client/station
+  **intelligence**: `parse_airodump_stations` (station section of the airodump CSV),
+  OUI `vendor_for` with **randomized-MAC detection** (locally-administered bit — flags
+  privacy MACs), a `StationTracker` that accumulates sightings across polls (union of
+  probed SSIDs, max signal/packets), fed live from the monitor scan WS; `GET
+  /api/stations` + a **Stations ("who's around")** panel (MAC · vendor · signal · AP ·
+  probes · pkts). Mock returns fixture stations so it's demoable now; real data needs
+  the radio. +4 backend + 1 frontend test → **128 backend + 51 frontend, 6/6
+  invariants**. **Next: Phase 21 (scheduling) or 23 (RBAC).**

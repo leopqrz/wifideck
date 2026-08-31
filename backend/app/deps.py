@@ -18,6 +18,7 @@ from .services.runner import CommandRunner
 from .services.scan import ScanService
 from .services.scope import ScopeList
 from .services.share import ShareService
+from .services.stations import StationService
 from .services.status import StatusService
 from .services.watchdog import WatchdogService
 from .services.wids import WidsService
@@ -72,6 +73,14 @@ _history_store = HistoryStore(settings.db_file)
 
 def get_history_store() -> HistoryStore:
     return _history_store
+
+
+# Client/station intelligence — accumulates sightings across monitor scans.
+_station_service = StationService(settings.mock)
+
+
+def get_station_service() -> StationService:
+    return _station_service
 
 
 # CaptureService holds active sessions/subprocesses, so it's a shared singleton.

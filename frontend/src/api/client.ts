@@ -294,6 +294,19 @@ export interface NotifyStatus {
 
 export const getNotify = () => apiGet<NotifyStatus>("/api/notify");
 
+export interface Station {
+  mac: string;
+  vendor: string | null;
+  signal_dbm: number | null;
+  bssid: string | null;
+  probes: string[];
+  packets: number;
+  first_seen: string | null;
+  last_seen: string | null;
+}
+
+export const getStations = () => apiGet<Station[]>("/api/stations");
+
 export async function sendTestNotify(): Promise<{
   sent: string[];
   errors?: string[];

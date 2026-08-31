@@ -8,6 +8,7 @@ import { CaptureControl } from "./components/CaptureControl";
 import { ShareControl } from "./components/ShareControl";
 import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
+import { StationsPanel } from "./components/StationsPanel";
 import { WatchdogPanel } from "./components/WatchdogPanel";
 import { WidsPanel } from "./components/WidsPanel";
 import { TargetSelector } from "./components/TargetSelector";
@@ -119,6 +120,10 @@ export default function App() {
             activeEnabled={active.enabled}
             onScopeChange={active.refresh}
           />
+        </section>
+
+        <section className="pb-8">
+          <StationsPanel />
         </section>
 
         <section className="pb-8">

@@ -16,11 +16,12 @@ from .deps import (
     get_capture_service,
     get_crack_service,
     get_flow_service,
+    get_station_service,
     get_watchdog_service,
     get_wids_service,
 )
 from .services.runner import CommandRunner
-from .services.scan import AirodumpScanner, ScanService
+from .services.scan import AirodumpScanner, ScanService, parse_airodump_csv
 from .services.status import StatusService
 
 router = APIRouter()
@@ -88,7 +89,9 @@ async def scan_stream(websocket: WebSocket, token: str = "") -> None:
                     airodump = AirodumpScanner(snap.interface)
                     await airodump.start()
                     await asyncio.sleep(2)  # let it gather a first sweep
-                nets = airodump.read()
+                raw = airodump.read_raw()
+                nets = parse_airodump_csv(raw)
+                get_station_service().observe_csv(raw)  # feed client/station intel
                 source = "monitor"
             else:
                 if airodump is not None:
