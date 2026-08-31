@@ -326,6 +326,17 @@ export interface Station {
 
 export const getStations = () => apiGet<Station[]>("/api/stations");
 
+export interface Anomaly {
+  mac: string;
+  vendor: string | null;
+  score: number;
+  level: string;
+  reasons: string[];
+  probes: string[];
+}
+
+export const getAnomalies = () => apiGet<Anomaly[]>("/api/anomalies");
+
 export interface Me {
   role: string;
   active_enabled: boolean;

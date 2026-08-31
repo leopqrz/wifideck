@@ -10,6 +10,7 @@ import { ShareControl } from "./components/ShareControl";
 import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
 import { StationsPanel } from "./components/StationsPanel";
+import { AnomalyPanel } from "./components/AnomalyPanel";
 import { WatchdogPanel } from "./components/WatchdogPanel";
 import { WidsPanel } from "./components/WidsPanel";
 import { TargetSelector } from "./components/TargetSelector";
@@ -132,8 +133,9 @@ export default function App() {
           />
         </section>
 
-        <section className="pb-8">
+        <section className="grid gap-4 pb-8 lg:grid-cols-2">
           <StationsPanel />
+          <AnomalyPanel />
         </section>
 
         <section className="pb-8">

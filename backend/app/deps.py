@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from .config import settings
 from .services.active import ActiveService
+from .services.anomaly import AnomalyService
 from .services.audit import AuditLog
 from .services.capture import CaptureService
 from .services.connect import ConnectService
@@ -82,6 +83,14 @@ _station_service = StationService(settings.mock)
 
 def get_station_service() -> StationService:
     return _station_service
+
+
+# Device anomaly / risk scoring over the observed stations (heuristic foundation).
+_anomaly_service = AnomalyService(_station_service)
+
+
+def get_anomaly_service() -> AnomalyService:
+    return _anomaly_service
 
 
 # CaptureService holds active sessions/subprocesses, so it's a shared singleton.

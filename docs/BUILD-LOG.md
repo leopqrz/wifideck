@@ -39,7 +39,7 @@ _Last updated: 2026-08-30._
 | 24 | packaging & distribution | ⬜ | none |
 | 25 | E2E tests & mock-hardware CI | ✅ | none |
 | 23 | multi-user / RBAC | ✅ | none (software) |
-| **29** | **ML: device fingerprinting + anomaly WIDS** (new) | ⬜ | **Jetson / AWS** for training + edge inference |
+| **29** | **anomaly scoring (ML foundation)** | 🧪 | heuristic layer done; **trained model needs Jetson/AWS + data** |
 | 13 | multi-adapter support | ⛔ | **2nd Wi-Fi adapter** |
 | 26 | WPA3 transition-mode downgrade | ⛔ | **AP-mode-capable adapter** (see upgrades) |
 | 17 | GPS / wardriving | ⛔ | **GPS dongle** (or phone GPS bridge) |

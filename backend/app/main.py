@@ -19,6 +19,7 @@ from .config import settings
 from .deps import get_scheduler_service, get_watchdog_service, get_wids_service
 from .routers import (
     active,
+    anomaly,
     capture,
     connect,
     crack,
@@ -110,6 +111,7 @@ app.include_router(report.router)
 app.include_router(notify.router)
 app.include_router(metrics.router)
 app.include_router(stations.router)
+app.include_router(anomaly.router)
 app.include_router(schedule.router)
 app.include_router(ws.router)
 
