@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getMe } from "./api/client";
 import { TopRail } from "./components/TopRail";
 import { HealthBanner } from "./components/HealthBanner";
 import { AdapterStatus } from "./components/AdapterStatus";
@@ -57,6 +58,13 @@ export default function App() {
   const { crack } = useCrack();
   const backendOnline = health.status === "online";
   const needsToken = health.status === "error" && health.unauthorized;
+  const [role, setRole] = useState<string | null>(null);
+  useEffect(() => {
+    if (!backendOnline) return;
+    getMe()
+      .then((m) => setRole(m.role))
+      .catch(() => setRole(null));
+  }, [backendOnline]);
 
   return (
     <div className="min-h-screen">
@@ -66,6 +74,7 @@ export default function App() {
         wsStatus={ws}
         adapterMode={status ? status.mode : null}
         mock={health.status === "online" ? health.health.mock : false}
+        role={role}
       />
 
       <main className="mx-auto max-w-[1080px] px-5">

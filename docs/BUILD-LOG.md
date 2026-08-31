@@ -38,7 +38,7 @@ _Last updated: 2026-08-30._
 | 21 | scheduling & automation | ✅ | none |
 | 24 | packaging & distribution | ⬜ | none |
 | 25 | E2E tests & mock-hardware CI | ⬜ | none |
-| 23 | multi-user / RBAC | ⬜ | none (software) |
+| 23 | multi-user / RBAC | ✅ | none (software) |
 | **29** | **ML: device fingerprinting + anomaly WIDS** (new) | ⬜ | **Jetson / AWS** for training + edge inference |
 | 13 | multi-adapter support | ⛔ | **2nd Wi-Fi adapter** |
 | 26 | WPA3 transition-mode downgrade | ⛔ | **AP-mode-capable adapter** (see upgrades) |
@@ -165,4 +165,10 @@ continue in the meantime.
   the app lifespan (idles until a job is enabled). `GET /api/schedule` +
   `POST /api/schedule/{id}` + `/run`; a **Scheduler** panel (on/off · interval ·
   Run now · last result). +5 backend + 1 frontend test → **133 backend + 52
-  frontend, 6/6 invariants**. **Next: Phase 23 (RBAC) or 25 (E2E/CI).**
+  frontend, 6/6 invariants**.
+- **2026-08-30** — ✅ **Phase 23 done.** RBAC: optional **viewer** role via
+  `WIFIDECK_VIEWER_TOKEN` — read-only, enforced by one middleware that blocks
+  mutating `/api` requests (no per-route edits); `role_for_token` (constant-time),
+  `current_role`, `GET /api/me`, and a **read-only** badge in the top rail. RBAC is
+  off unless a viewer token is set. Security invariants intact (6/6). +4 backend
+  tests → **137 backend + 52 frontend**. **Next: Phase 18 (defense++), then 25/29.**

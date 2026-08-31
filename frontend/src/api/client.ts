@@ -307,6 +307,14 @@ export interface Station {
 
 export const getStations = () => apiGet<Station[]>("/api/stations");
 
+export interface Me {
+  role: string;
+  active_enabled: boolean;
+  rbac: boolean;
+}
+
+export const getMe = () => apiGet<Me>("/api/me");
+
 export interface Job {
   id: string;
   label: string;

@@ -12,11 +12,13 @@ export function TopRail({
   wsStatus,
   adapterMode,
   mock = false,
+  role = null,
 }: {
   backendOnline: boolean;
   wsStatus: WsStatus;
   adapterMode?: string | null;
   mock?: boolean;
+  role?: string | null;
 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/80 backdrop-blur">
@@ -24,12 +26,15 @@ export function TopRail({
         <span className="font-display text-sm font-bold uppercase tracking-[0.10em] text-head">
           WIFI<span className="text-accent">DECK</span>
         </span>
-        <span className="hidden font-mono text-[12px] text-faint sm:inline">
-          v2.5 · connect
-        </span>
+        <span className="hidden font-mono text-[12px] text-faint sm:inline">v2.9</span>
         {mock && (
           <span className="rounded border border-warn/50 bg-warn/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-warn">
             mock data
+          </span>
+        )}
+        {role === "viewer" && (
+          <span className="rounded border border-warn/50 bg-warn/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-warn">
+            read-only
           </span>
         )}
         <div className="flex-1" />

@@ -8,11 +8,13 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import ws
+from .auth import role_for_token, token_from_headers
 from .config import settings
 from .deps import get_scheduler_service, get_watchdog_service, get_wids_service
 from .routers import (
@@ -24,6 +26,7 @@ from .routers import (
     flow,
     health,
     history,
+    me,
     metrics,
     mode,
     notify,
@@ -57,6 +60,26 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="WiFiDeck", version=settings.version, lifespan=lifespan)
 
+
+# RBAC: a viewer token may read but not mutate. Enforced in one place so every
+# mutating /api route is covered without per-route edits. No-op unless a viewer
+# token is configured (then some tokens resolve to the "viewer" role).
+@app.middleware("http")
+async def enforce_viewer_readonly(request: Request, call_next):
+    if request.url.path.startswith("/api") and request.method not in ("GET", "HEAD", "OPTIONS"):
+        role = role_for_token(
+            token_from_headers(
+                request.headers.get("authorization"), request.headers.get("x-auth-token")
+            )
+        )
+        if role == "viewer":
+            return JSONResponse(
+                {"detail": "read-only (viewer) token — this action needs an operator token"},
+                status_code=403,
+            )
+    return await call_next(request)
+
+
 # The Vite dev server (5173) talks to this API cross-origin during development.
 app.add_middleware(
     CORSMiddleware,
@@ -69,6 +92,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(me.router)
 app.include_router(status.router)
 app.include_router(connect.router)
 app.include_router(mode.router)

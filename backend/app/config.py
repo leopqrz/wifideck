@@ -24,8 +24,11 @@ class Settings:
     host: str = os.environ.get("WIFIDECK_HOST", "127.0.0.1")
     port: int = int(os.environ.get("WIFIDECK_PORT", "8787"))
 
-    # Shared secret required on every HTTP route and WebSocket.
+    # Shared secret required on every HTTP route and WebSocket (operator role).
     token: str = os.environ.get("WIFIDECK_TOKEN", "dev-token-change-me")
+    # Optional read-only role: this token may GET but not mutate (no mode/capture/
+    # deauth/etc). Empty = RBAC off (single operator token).
+    viewer_token: str = os.environ.get("WIFIDECK_VIEWER_TOKEN", "")
 
     # Mock-adapter mode: serve recorded fixtures instead of touching hardware,
     # so the UI and tests run with no ALFA attached.
