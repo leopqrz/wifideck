@@ -278,6 +278,15 @@ export interface HistoryEntry {
 // Persisted history — past capture sessions + their crack outcomes (SQLite).
 export const getHistory = () => apiGet<HistoryEntry[]>("/api/history");
 
+// The assessment report as a self-contained HTML document (open in a tab / print to PDF).
+export async function getReportHtml(): Promise<string> {
+  const res = await fetch("/api/report", {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) throw new Error(`report ${res.status}`);
+  return res.text();
+}
+
 export async function addScope(
   bssid: string,
   ssid?: string,

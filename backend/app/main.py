@@ -25,6 +25,7 @@ from .routers import (
     health,
     history,
     mode,
+    report,
     scan,
     share,
     status,
@@ -74,6 +75,7 @@ app.include_router(flow.router)
 app.include_router(wids.router)
 app.include_router(crack.router)
 app.include_router(history.router)
+app.include_router(report.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

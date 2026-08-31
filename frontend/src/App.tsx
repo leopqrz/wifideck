@@ -15,6 +15,7 @@ import { ActivePanel } from "./components/ActivePanel";
 import { FlowPanel } from "./components/FlowPanel";
 import { CrackPanel } from "./components/CrackPanel";
 import { HistoryPanel } from "./components/HistoryPanel";
+import { ReportPanel } from "./components/ReportPanel";
 import { TokenGate } from "./components/TokenGate";
 import { useHealth } from "./hooks/useHealth";
 import { useStatus } from "./hooks/useStatus";
@@ -147,8 +148,12 @@ export default function App() {
           <CrackPanel crack={crack} targetBssid={target} />
         </section>
 
-        <section className="pb-16">
+        <section className="pb-8">
           <HistoryPanel refreshKey={crack?.state ?? ""} />
+        </section>
+
+        <section className="pb-16">
+          <ReportPanel />
         </section>
       </main>
 

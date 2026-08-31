@@ -31,8 +31,8 @@ _Last updated: 2026-08-30._
 | 15 | PMKID clientless capture (hcxdumptool) | 🧪 | built; **live capture needs working monitor + hcxdumptool** |
 | 20 | SQLite persistence & history | ✅ | none |
 | 27 | WPA3 / SAE posture & recon | ✅ | none (software) |
+| 22 | reporting & export (HTML/PDF) | ✅ | none |
 | 16 | client/station intelligence | 🔨 | build unblocked; live data needs monitor |
-| 22 | reporting & export (HTML/PDF) | ⬜ | none |
 | 18 | defensive detections++ | 🧪 | detections need monitor; rules/UI unblocked |
 | 19 | notifications & integrations | ⬜ | none (webhooks/ntfy/Prometheus) |
 | 21 | scheduling & automation | ⬜ | none |
@@ -136,5 +136,11 @@ continue in the meantime.
   its driver (`mt7921u`) **and** the MT7612U driver (`mt76x2u`) already ship **in the
   running kernel** → plug-and-play, no DKMS, no version breakage. Wrote
   `docs/HARDWARE.md` (buy + setup + acceptance test) and `scripts/fix-8812au-driver.sh`
-  (the attempt, safe/reversible). **Next while it ships: software-only phases —
-  Phase 16 (client/station intelligence).**
+  (the attempt, safe/reversible).
+- **2026-08-30** — ✅ **Phase 22 done.** Assessment **reporting**: `posture.py`
+  (Python mirror of the frontend `securityClass`), a `ReportService` that aggregates
+  known networks + posture, capture sessions + crack outcomes, scope, and the audit
+  trail into a self-contained styled **HTML** doc (print → PDF); `GET /api/report`
+  (HTML) + `/api/report/data` (JSON); a **Report** panel (Open / Download .html).
+  +4 backend + 1 frontend test → 119 backend + 49 frontend, 6/6 invariants. **Next:
+  Phase 19 (notifications) or 16 (client intel).**
