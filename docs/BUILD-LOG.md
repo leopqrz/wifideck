@@ -10,9 +10,9 @@ _Last updated: 2026-08-30._
 
 | Resource | Use |
 |---|---|
-| **Mac M4 Pro Max, 64 GB** | dev host; **hashcat GPU cracking** (Apple Silicon Metal), model training/inference |
-| **Jetson Orin Nano 8 GB** | edge **ML inference** (device fingerprinting / anomaly WIDS), always-on sensor node |
-| **AWS** | heavier model training, GPU crack bursts, wordlist/rule storage |
+| **Mac M4 Pro Max, 64 GB** | **runs everything** — hashcat GPU (Metal), ML training + inference, the VM. Outclasses the Jetson for both training and inference. |
+| ~~Jetson Orin Nano 8 GB~~ | **not needed** — the M4 handles all ML. Only worth it later as a *standalone deployed sensor* (a box left running away from the laptop). |
+| **AWS** | optional — heavier model training / GPU crack bursts / wordlist storage (the M4 covers day-to-day) |
 | **ALFA AWUS036ACH (RTL8812AU, `rtw88`)** | current radio — MANAGED scan OK; **monitor RX + inject CONFIRMED DEAD** (2026-08-30: 0 beacons in 36s hopping; `aireplay --test` found 0 APs); **no AP mode** |
 | Willing to invest | new radios, GPS, more compute as phases need them |
 
@@ -39,7 +39,7 @@ _Last updated: 2026-08-30._
 | 24 | packaging & distribution | ⬜ | none |
 | 25 | E2E tests & mock-hardware CI | ✅ | none |
 | 23 | multi-user / RBAC | ✅ | none (software) |
-| **29** | **anomaly scoring (ML foundation)** | 🧪 | heuristic layer done; **trained model needs Jetson/AWS + data** |
+| **29** | **anomaly scoring (ML foundation)** | 🧪 | heuristic layer done; **trained model trains + runs on the M4** (no Jetson needed) |
 | 13 | multi-adapter support | ⛔ | **2nd Wi-Fi adapter** |
 | 26 | WPA3 transition-mode downgrade | ⛔ | **AP-mode-capable adapter** (see upgrades) |
 | 17 | GPS / wardriving | ⛔ | **GPS dongle** (or phone GPS bridge) |
@@ -59,7 +59,7 @@ _Last updated: 2026-08-30._
    **M4 Metal GPU** or an AWS GPU, run hashcat on the host/cloud and feed it the
    `.22000` file (Phase 14 already produces the portable format). A small **"offload
    crack" phase** (ship the 22000 to a remote hashcat + poll) would unlock full GPU
-   speed — worth adding. Jetson handles edge ML; AWS covers training/bursts.
+   speed — worth adding. **The M4 covers all ML + GPU work; no Jetson needed.**
    To use the hashcat engine now, install on the VM: `sudo apt install hashcat hcxtools`.
 
 ## Where AI/ML genuinely helps (Phase 29, new)
@@ -69,8 +69,9 @@ Not bolted-on hype — real, modern uses:
   MAC-randomization patterns, and IE fingerprints (the "who's around" view, smarter).
 - **Anomaly-based WIDS** — learn your environment's baseline and flag deviations
   (evil-twin, karma, new rogue) instead of only fixed-threshold rules.
-- **Edge inference on the Jetson Orin Nano** — run the models on the sensor node,
-  train on AWS, ship the weights. Modern, and it's exactly what the Jetson is for.
+- **All on the M4** — train + run the models on the Mac (PyTorch/MPS or scikit-learn);
+  light inference can even run CPU-side in the VM. A Jetson is only for a *separate,
+  always-on deployed sensor* later — not required for the all-in-one setup.
 
 ## Real-capture verdict (2026-08-30)
 
