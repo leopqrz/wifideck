@@ -153,6 +153,7 @@ export interface WidsStatus {
   checks: number;
   alert_count: number;
   last_check: string | null;
+  baseline: number;
   alerts: WidsAlert[];
 }
 
@@ -163,6 +164,24 @@ export async function setWids(enabled: boolean): Promise<WidsStatus> {
     body: JSON.stringify({ enabled }),
   });
   if (!res.ok) throw new Error(`wids ${res.status}`);
+  return res.json();
+}
+
+export async function setBaseline(): Promise<WidsStatus> {
+  const res = await fetch("/api/wids/baseline", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) throw new Error(`baseline ${res.status}`);
+  return res.json();
+}
+
+export async function clearBaseline(): Promise<WidsStatus> {
+  const res = await fetch("/api/wids/baseline", {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) throw new Error(`baseline ${res.status}`);
   return res.json();
 }
 

@@ -162,6 +162,7 @@ _wids_service = WidsService(
     mock=settings.mock,
     enabled=settings.wids_enabled,
     notify=_notify_service,
+    baseline_file=settings.wids_baseline_file,
 )
 
 

@@ -33,7 +33,7 @@ _Last updated: 2026-08-30._
 | 27 | WPA3 / SAE posture & recon | ✅ | none (software) |
 | 22 | reporting & export (HTML/PDF) | ✅ | none |
 | 16 | client/station intelligence | 🧪 | built + mock demo; live data needs monitor |
-| 18 | defensive detections++ | 🧪 | detections need monitor; rules/UI unblocked |
+| 18 | defensive detections++ | ✅ | baseline detections work from scans (managed OK) |
 | 19 | notifications & integrations | ✅ | none (webhooks/ntfy/Prometheus) |
 | 21 | scheduling & automation | ✅ | none |
 | 24 | packaging & distribution | ⬜ | none |
@@ -171,4 +171,11 @@ continue in the meantime.
   mutating `/api` requests (no per-route edits); `role_for_token` (constant-time),
   `current_role`, `GET /api/me`, and a **read-only** badge in the top rail. RBAC is
   off unless a viewer token is set. Security invariants intact (6/6). +4 backend
-  tests → **137 backend + 52 frontend**. **Next: Phase 18 (defense++), then 25/29.**
+  tests → **137 backend + 52 frontend**.
+- **2026-08-30** — ✅ **Phase 18 done.** Defensive detections++: a **known-good
+  baseline** (snapshot your APs, persisted) plus `detect_rogue_aps` (new AP not in
+  baseline) and `detect_downgrades` (a baselined AP now OPEN → downgrade/evil-twin),
+  wired into the WIDS loop (dedup'd); `POST`/`DELETE /api/wids/baseline`, `baseline`
+  count in status, and baseline controls in the WIDS panel. Works from managed scans
+  (no monitor needed). +3 backend tests → **140 backend + 52 frontend, 6/6
+  invariants**. **Next: Phase 25 (E2E/CI), then 29 (ML foundation).**

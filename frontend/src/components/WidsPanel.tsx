@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { setWids, type WidsStatus } from "../api/client";
+import { clearBaseline, setBaseline, setWids, type WidsStatus } from "../api/client";
 import { StatusPill } from "./StatusPill";
 
 const SEV_TONE: Record<string, string> = {
@@ -21,6 +21,18 @@ export function WidsPanel({ wids }: { wids: WidsStatus | null }) {
     setBusy(true);
     try {
       await setWids(!enabled);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function baseline(set: boolean) {
+    setError(null);
+    setBusy(true);
+    try {
+      await (set ? setBaseline() : clearBaseline());
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -52,10 +64,35 @@ export function WidsPanel({ wids }: { wids: WidsStatus | null }) {
           {enabled ? "Stop monitoring" : "Enable monitoring"}
         </button>
         <span className="font-mono text-[11px] text-faint">
-          evil-twin (scans) · deauth floods (monitor mode)
+          evil-twin · deauth floods · rogue-AP / downgrade (vs baseline)
         </span>
         <div className="flex-1" />
         <span className="font-mono text-[11px] text-muted">checks {wids?.checks ?? 0}</span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-hud text-faint">
+          baseline {wids?.baseline ?? 0}
+        </span>
+        <button
+          onClick={() => baseline(true)}
+          disabled={busy}
+          className="rounded border border-line px-2.5 py-1 font-mono text-[11px] text-text hover:border-accent disabled:opacity-50"
+        >
+          Set from current scan
+        </button>
+        {(wids?.baseline ?? 0) > 0 && (
+          <button
+            onClick={() => baseline(false)}
+            disabled={busy}
+            className="rounded border border-line px-2.5 py-1 font-mono text-[11px] text-faint hover:border-crit disabled:opacity-50"
+          >
+            Clear
+          </button>
+        )}
+        <span className="font-mono text-[10px] text-faint">
+          snapshot your known-good APs → new/changed ones get flagged
+        </span>
       </div>
 
       <div className="mt-4">

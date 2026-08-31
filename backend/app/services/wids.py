@@ -11,6 +11,8 @@ Read-only / passive. Raises alerts; never transmits.
 from __future__ import annotations
 
 import asyncio
+import json
+import os
 from collections import defaultdict, deque
 from datetime import datetime, timezone
 
@@ -58,6 +60,38 @@ def find_evil_twins(networks: list[Network]) -> list[dict]:
     return out
 
 
+def detect_rogue_aps(networks: list[Network], baseline: dict) -> list[dict]:
+    """APs present now but not in the known-good baseline. Only with a baseline set."""
+    if not baseline:
+        return []
+    out: list[dict] = []
+    for n in networks:
+        if n.bssid and n.bssid not in baseline:
+            out.append({
+                "bssid": n.bssid, "ssid": n.ssid, "severity": "low",
+                "detail": f"new AP not in baseline: {n.ssid or '<hidden>'} ({n.bssid})",
+            })
+    return out
+
+
+def detect_downgrades(networks: list[Network], baseline: dict) -> list[dict]:
+    """A baselined AP that has since dropped its encryption (now OPEN) — a classic
+    downgrade / evil-twin signal."""
+    out: list[dict] = []
+    for n in networks:
+        if n.bssid and n.bssid in baseline:
+            base_sec = baseline[n.bssid].get("security") or []
+            if base_sec and not n.security:
+                out.append({
+                    "bssid": n.bssid, "ssid": n.ssid, "severity": "high",
+                    "detail": (
+                        f"'{n.ssid or '<hidden>'}' ({n.bssid}) is now OPEN "
+                        f"(baseline had {sorted(base_sec)}) — possible downgrade/evil-twin"
+                    ),
+                })
+    return out
+
+
 class WidsService:
     def __init__(
         self,
@@ -69,6 +103,7 @@ class WidsService:
         mock: bool,
         enabled: bool,
         notify=None,
+        baseline_file: str | None = None,
     ) -> None:
         self.runner = runner
         self.scan = scan
@@ -78,6 +113,9 @@ class WidsService:
         self.mock = mock
         self.enabled = enabled
         self.notify = notify
+        self.baseline_file = baseline_file
+        self._baseline: dict = {}
+        self._load_baseline()
         self._task: asyncio.Task | None = None
         self._alerts: deque[WidsAlert] = deque(maxlen=100)
         self._seen: set[tuple] = set()
@@ -99,6 +137,41 @@ class WidsService:
             except RuntimeError:
                 pass  # no running loop (e.g. a direct unit-test call)
 
+    def _load_baseline(self) -> None:
+        if not self.baseline_file or not os.path.isfile(self.baseline_file):
+            return
+        try:
+            with open(self.baseline_file, errors="replace") as f:
+                self._baseline = json.load(f)
+        except (ValueError, OSError):
+            self._baseline = {}
+
+    def _save_baseline(self) -> None:
+        if not self.baseline_file:
+            return
+        try:
+            os.makedirs(os.path.dirname(self.baseline_file) or ".", exist_ok=True)
+            with open(self.baseline_file, "w") as f:
+                json.dump(self._baseline, f, indent=2)
+        except OSError:
+            pass
+
+    async def set_baseline(self) -> int:
+        nets = await self.scan.scan_managed()
+        self._baseline = {
+            n.bssid: {"ssid": n.ssid, "security": n.security} for n in nets if n.bssid
+        }
+        self._save_baseline()
+        return len(self._baseline)
+
+    def clear_baseline(self) -> None:
+        self._baseline = {}
+        self._save_baseline()
+
+    @property
+    def baseline_count(self) -> int:
+        return len(self._baseline)
+
     async def _deauth_count(self, iface: str) -> int:
         r = await self.runner.run([
             "sh", "-c",
@@ -119,6 +192,16 @@ class WidsService:
             if key not in self._seen:
                 self._seen.add(key)
                 self._alert("evil-twin", tw["severity"], tw["ssid"], None, tw["detail"])
+        for r in detect_rogue_aps(networks, self._baseline):
+            key = ("rogue-ap", r["bssid"])
+            if key not in self._seen:
+                self._seen.add(key)
+                self._alert("rogue-ap", r["severity"], r["ssid"], r["bssid"], r["detail"])
+        for d in detect_downgrades(networks, self._baseline):
+            key = ("downgrade", d["bssid"])
+            if key not in self._seen:
+                self._seen.add(key)
+                self._alert("downgrade", d["severity"], d["ssid"], d["bssid"], d["detail"])
 
         snap = await self.status.snapshot()
         if not self.mock and snap.mode == "MONITOR" and snap.interface:
@@ -137,6 +220,7 @@ class WidsService:
             alert_count=len(self._alerts),
             last_check=self.last_check,
             alerts=list(self._alerts),
+            baseline=self.baseline_count,
         )
 
     async def _loop(self) -> None:

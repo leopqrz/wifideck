@@ -65,6 +65,10 @@ class Settings:
     wids_enabled: bool = _bool("WIFIDECK_WIDS", False)
     wids_interval: float = float(os.environ.get("WIFIDECK_WIDS_INTERVAL", "10"))
     wids_deauth_threshold: int = int(os.environ.get("WIFIDECK_WIDS_DEAUTH_THRESHOLD", "20"))
+    # Known-good baseline: snapshot your APs so anything new/changed is flagged.
+    wids_baseline_file: str = os.environ.get(
+        "WIFIDECK_WIDS_BASELINE", "/tmp/wifideck/wids_baseline.json"
+    )
 
     # --- Notifications & integrations --------------------------------------
     # Push alerts (WIDS detections, watchdog recoveries) to any configured sink.

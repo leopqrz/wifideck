@@ -19,4 +19,5 @@ class WidsStatus(BaseModel):
     checks: int = 0
     alert_count: int = 0
     last_check: str | None = None
+    baseline: int = 0
     alerts: list[WidsAlert] = []

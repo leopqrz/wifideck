@@ -8,6 +8,7 @@ const withAlert: WidsStatus = {
   running: true,
   checks: 5,
   alert_count: 1,
+  baseline: 0,
   last_check: "2026-08-29T00:00:00+00:00",
   alerts: [
     {
