@@ -1,16 +1,27 @@
 import { useEffect, useState } from "react";
-import { setMode, type Status } from "../api/client";
+import { getRadio, setMode, type Status } from "../api/client";
 
 type Target = "managed" | "monitor";
 
-// One-click MANAGED ⇄ MONITOR switch. Both are direct (no confirm) so you can
-// flip between them fast; MONITOR drops the Wi-Fi link. The status stream
-// confirms the resulting mode.
+// One-click MANAGED ⇄ MONITOR switch (Linux). On a monitor-only radio (the macOS
+// libusb backend, capabilities.managed === false) there are no modes to switch —
+// we hide the toggle and explain instead.
 export function ModeControl({ status }: { status: Status | null }) {
   const current = status?.mode ?? null; // "MANAGED" | "MONITOR" | null
   const [pending, setPending] = useState<Target | null>(null);
   const [channel, setChannel] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [managedSupported, setManagedSupported] = useState(true);
+
+  // Ask the radio backend whether it even has a managed mode (Linux: yes; macOS
+  // libusb: no). Default true so the Linux UI is unchanged until we know otherwise.
+  useEffect(() => {
+    getRadio()
+      .then((r) => setManagedSupported(r.capabilities.managed))
+      .catch(() => {
+        /* leave default */
+      });
+  }, []);
 
   // Clear the pending state once the live status reflects the new mode.
   useEffect(() => {
@@ -44,6 +55,22 @@ export function ModeControl({ status }: { status: Status | null }) {
   function onClick(target: Target) {
     if (target === current || disabled) return;
     doSwitch(target);
+  }
+
+  if (!managedSupported) {
+    return (
+      <div className="rounded-[10px] border border-line bg-panel p-5">
+        <span className="font-mono text-[10px] uppercase tracking-hud text-faint">
+          Mode control
+        </span>
+        <p className="mt-3 font-mono text-xs text-text">Monitor-only radio (libusb)</p>
+        <p className="mt-2 font-mono text-[11px] text-muted">
+          This adapter has no MANAGED/MONITOR modes to switch — it&apos;s a pure
+          capture/injection device. Just pick a channel and capture (below or via the
+          Capture panel).
+        </p>
+      </div>
+    );
   }
 
   return (
