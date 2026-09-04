@@ -56,6 +56,8 @@ backend, adapter, driver, and capabilities are active.
 This is the single most important idea in the whole tool, so it gets its own
 section.
 
+![MANAGED vs MONITOR mode](img/managed_vs_monitor.png)
+
 ### Managed mode (a.k.a. “station” / “client”)
 The normal way a Wi-Fi card works. The card **associates** with one access point,
 follows its channel, and the OS handles encryption, so you get a normal internet
@@ -125,6 +127,8 @@ Fastest way to explore **all** of them with **no hardware** is mock mode:
 ```bash
 WIFIDECK_MOCK=1 ./wifideck      # UI shows a MOCK DATA badge; every panel has fixtures
 ```
+
+![The capture pipeline](img/pipeline.png)
 
 ### 3.1 Adapter Status  ·  `GET /api/status`, `WS /ws/status`
 **What:** live USB presence, driver, interface, mode, link state, SSID, IP,
