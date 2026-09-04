@@ -13,9 +13,10 @@ M4 → macOS → WiFiDeck (FastAPI) → libusb → AWUS036ACH
 ## 1. Prerequisites (Homebrew)
 
 ```sh
-brew install python@3.12 node libusb tshark aircrack-ng hashcat hcxtools
+brew install python@3.12 node libusb wireshark aircrack-ng hashcat hcxtools
 ```
-(`tshark` = handshake verify · `aircrack-ng`/`hashcat` = crack · `hcxtools` = pcap→22000.)
+(`wireshark` provides **`tshark`** = handshake verify · `aircrack-ng`/`hashcat` = crack
+· `hcxtools` = pcap→22000. Note: on macOS it's `wireshark`, **not** a `tshark` formula.)
 
 ## 2. The macOS capture driver
 
@@ -34,18 +35,31 @@ system_profiler SPUSBDataType | grep -i "0x0bda\|realtek"
 
 ## 4. Run WiFiDeck on macOS
 
+Get the repo onto the Mac (it lives on GitHub; the VM copy isn't shared):
 ```sh
-cd wifideck
-# backend
-cd backend && python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
+cd ~/Projects && git clone https://github.com/leopqrz/wifideck.git
+```
+
+**Backend** — run from `wifideck/backend`, in its **own** venv (not anaconda base):
+```sh
+cd ~/Projects/wifideck/backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 WIFIDECK_TOKEN=dev-token-change-me \
 WIFIDECK_RADIO_BACKEND=macos \
 WIFIDECK_RTL8812AU_DIR="$HOME/Projects/rtl8812au-macos" \
 WIFIDECK_ENABLE_ACTIVE=1 \
-PYTHONPATH=. uvicorn app.main:app --host 127.0.0.1 --port 8787 &
-# frontend
-cd ../frontend && npm install && npm run dev      # http://localhost:5173
+PYTHONPATH=. uvicorn app.main:app --host 127.0.0.1 --port 8787
 ```
+
+**Frontend** — a second terminal:
+```sh
+cd ~/Projects/wifideck/frontend && npm install && npm run dev   # http://localhost:5173
+```
+
+> Pitfalls: `ModuleNotFoundError: No module named 'app'` = you're not in
+> `wifideck/backend` (or didn't set `PYTHONPATH=.`). Use the venv's `uvicorn`, not
+> anaconda's.
 
 - **Radio doctor** (`GET /api/radio`, or the Radio panel) should show
   `backend: macos-rtl8812au`, monitor RX + raw TX capable.
