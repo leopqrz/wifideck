@@ -60,14 +60,21 @@ Ran [`xen-proc/rtl8812au-macos`](https://github.com/xen-proc/rtl8812au-macos) on
 - **2.4 GHz (ch 6): ✅ WORKS — 1152 frames** captured in 10 s, real beacons + data
   from the operator's own AP `96:04:e3:ec:ab:5a` (Queiroz). Bring-up: "BB/RF tables
   applied, RFE type 3".
-- **5 GHz (ch 36): retest pending.** The first attempt returned 0 frames only because
-  the adapter **dropped off the USB bus** after an `[Errno 5] I/O Error` at the end of
-  the ch6 capture (`error opening device: no USB device 0bda:8812 found`) — the known
-  "failed bring-up needs a physical replug" quirk, not a 5 GHz failure. Retest = replug
-  + ch36-only run.
+- **5 GHz (ch 36): ✅ CONFIRMED — 1097 frames** (891 802.11) in 10 s, multiple APs
+  incl. the operator's own. Real diverse traffic.
+- **Stability: ✅ CONFIRMED** — three consecutive 10 s captures (ch6 → ch36 → ch6)
+  all completed with **`bulk reads: N (0 returned nothing)`** and **no I/O error /
+  no device drop**. Counts: 5749 / 1097 / 3804 frames.
+- **Root cause of the earlier drop identified:** it was **VMware fighting for the USB
+  device**. With the VM running but the adapter handed to macOS (VMware "connect to
+  Mac"), bring-up and capture are rock-solid on both bands. The chip/driver are fine.
+- **LED note:** the adapter's LED stays off — the minimal libusb driver doesn't drive
+  the LED GPIO. Cosmetic only; capture works regardless.
 
-**Conclusion:** the ACH does **real native-macOS monitor capture** over libusb — no
-VMware, no Linux driver, no kext, no SIP change, no sudo. Native macOS is a **viable
-WiFiDeck RF backend**, and the most promising architecture (M4 → macOS → libusb → ACH
-→ WiFiDeck). Open item: bring-up **stability** (the mid-capture I/O drop) and 5 GHz
-confirmation.
+**Conclusion (final):** the ACH does **stable, real native-macOS monitor capture on
+2.4 *and* 5 GHz** over libusb — no VMware in the RF path, no Linux driver, no kext,
+no SIP change, no sudo, **no new hardware**. Native macOS is the chosen WiFiDeck RF
+backend: **M4 → macOS → libusb → AWUS036ACH → WiFiDeck.** Remaining work is software:
+a macOS RadioBackend that drives `capture.py` and feeds the existing
+verify → crack → history → report pipeline. Injection (Phase: acceptance) still to be
+validated against an authorized test AP.

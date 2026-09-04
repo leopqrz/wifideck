@@ -31,7 +31,13 @@ in software" — **was too strong and is retracted.**
 4. **Only then** evaluate the **AWUS036AXML (MT7921AU)** as a *future modernization*
    (Wi-Fi 6E / in-kernel `mt76`), not a rescue for an unresolved software problem.
 
-Full investigation plan and current environment: [RADIO-ENVIRONMENT.md](RADIO-ENVIRONMENT.md).
+**Outcome (2026-08-30): option 1 succeeded.** Native-macOS capture is **proven and
+stable** — the ACH captured 2.4 GHz (5749 frames) *and* 5 GHz (1097 frames) and
+survived three back-to-back captures with zero I/O errors, once VMware was taken out
+of the RF path (adapter handed to macOS, VM still running). **No new hardware is
+needed.** WiFiDeck's RF backend will be **native macOS + libusb**; the AWUS036AXML is
+deferred to a genuine *future* modernization, not a rescue. Details:
+[RADIO-ENVIRONMENT.md](RADIO-ENVIRONMENT.md).
 
 ### Why the original conclusion was wrong
 
