@@ -13,9 +13,11 @@ import shutil
 import time
 from datetime import datetime, timezone
 
+from ..config import settings
 from ..models.network import Network
 from ..models.session import CaptureDetail, CaptureSession
 from . import fixtures
+from .radio import macos_capture_argv, resolve_backend_name
 from .runner import CommandRunner
 from .scan import parse_airodump_csv
 
@@ -94,7 +96,13 @@ class CaptureService:
             self.history.record_session(session)
 
         if not self.mock:
-            if session.mode == "pmkid":
+            if resolve_backend_name(self.mock, settings.radio_backend) == "macos-rtl8812au":
+                # Native macOS: drive the libusb capture (rtl8812au-macos capture.py).
+                # It writes a single pcap; stop() kills it (partial pcaps still parse).
+                args = macos_capture_argv(
+                    settings.rtl8812au_dir, channel, self._prefix(sid) + ".pcap"
+                )
+            elif session.mode == "pmkid":
                 # hcxdumptool grabs the PMKID clientless (an association request, no
                 # deauth). NB: hcxdumptool's CLI differs across versions — tune these
                 # flags for the one installed (this matches the 6.2.x series).

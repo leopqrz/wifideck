@@ -9,12 +9,31 @@ Selection is by WIFIDECK_RADIO_BACKEND (auto|linux|macos|mock); auto picks by OS
 """
 from __future__ import annotations
 
+import os
 import platform
 import re
 
 from ..models.radio import RadioCapabilities, RadioInfo
 from .runner import CommandRunner
 from .status import StatusService
+
+
+def resolve_backend_name(mock: bool, pref: str = "auto") -> str:
+    """The active backend name, without constructing a backend (cheap, side-effect free)."""
+    if mock or pref == "mock":
+        return "mock"
+    if pref == "macos" or (pref == "auto" and platform.system() == "Darwin"):
+        return "macos-rtl8812au"
+    return "linux-nl80211"
+
+
+def macos_capture_argv(
+    rtl_dir: str, channel: int | None, out_path: str, seconds: int = 3600
+) -> list[str]:
+    """argv to run the macOS libusb capture (xen-proc/rtl8812au-macos tools/capture.py)."""
+    py = os.path.join(rtl_dir, ".venv", "bin", "python") if rtl_dir else "python3"
+    cap = os.path.join(rtl_dir, "tools", "capture.py") if rtl_dir else "tools/capture.py"
+    return [py, cap, "-c", str(channel or 6), "-t", str(seconds), "-o", out_path]
 
 _ACH_NOTE = (
     "monitor advertised by phy, but rtw88 delivers no RX on this kernel — use the "

@@ -36,6 +36,8 @@ class Settings:
 
     # Radio backend: auto | linux | macos | mock. auto picks by OS (Darwin → macos).
     radio_backend: str = os.environ.get("WIFIDECK_RADIO_BACKEND", "auto")
+    # macOS RF backend: the xen-proc/rtl8812au-macos checkout (its .venv + tools/capture.py).
+    rtl8812au_dir: str = os.environ.get("WIFIDECK_RTL8812AU_DIR", "")
 
     # Where capture sessions (csv + pcap) are written.
     capture_dir: str = os.environ.get("WIFIDECK_CAPTURE_DIR", "/tmp/wifideck/sessions")
