@@ -95,7 +95,8 @@ python3 scripts/security_check.py           # 6 security invariants
 ## Docs
 
 - [docs/OFFENSIVE.md](docs/OFFENSIVE.md) — **how to use deauth / guided capture / cracking**, with expected results
-- [docs/HARDWARE.md](docs/HARDWARE.md) — **radio buying & setup** (what to buy for real capture, and why) 
+- [docs/HARDWARE.md](docs/HARDWARE.md) — **radio buying & setup** (what to buy for real capture, and why)
+- [docs/ADR-001-adapter-swap.md](docs/ADR-001-adapter-swap.md) — **why the RTL8812AU is being replaced** (decision record)
 - [docs/BUILD-LOG.md](docs/BUILD-LOG.md) — live roadmap/progress tracker
 - [docs/PLAN.md](docs/PLAN.md) — the full phased plan · [docs/FUTURE.md](docs/FUTURE.md) — candidate future phases
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/API.md](docs/API.md) · [docs/SECURITY.md](docs/SECURITY.md)
