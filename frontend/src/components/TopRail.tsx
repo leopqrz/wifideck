@@ -7,18 +7,30 @@ function modeTone(mode: string | null | undefined): "ok" | "warn" | "muted" {
   return "muted";
 }
 
+// Emoji (not the Apple-logo private-use glyph, which only renders on Apple devices).
+function osIcon(os: string | null | undefined): string {
+  if (os === "macOS") return "🍎";
+  if (os === "Linux") return "🐧";
+  if (os === "Windows") return "🪟";
+  return "🖥️";
+}
+
 export function TopRail({
   backendOnline,
   wsStatus,
   adapterMode,
   mock = false,
   role = null,
+  os = null,
+  osDetail = null,
 }: {
   backendOnline: boolean;
   wsStatus: WsStatus;
   adapterMode?: string | null;
   mock?: boolean;
   role?: string | null;
+  os?: string | null;
+  osDetail?: string | null;
 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/80 backdrop-blur">
@@ -27,6 +39,14 @@ export function TopRail({
           WIFI<span className="text-accent">DECK</span>
         </span>
         <span className="hidden font-mono text-[12px] text-faint sm:inline">v2.9</span>
+        {os && (
+          <span
+            title={osDetail ?? os}
+            className="rounded border border-line-soft bg-panel-2 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted"
+          >
+            {osIcon(os)} {os}
+          </span>
+        )}
         {mock && (
           <span className="rounded border border-warn/50 bg-warn/15 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-warn">
             mock data

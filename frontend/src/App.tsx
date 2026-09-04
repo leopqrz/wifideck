@@ -79,6 +79,8 @@ export default function App() {
         adapterMode={status ? status.mode : null}
         mock={health.status === "online" ? health.health.mock : false}
         role={role}
+        os={health.status === "online" ? (health.health.os ?? null) : null}
+        osDetail={health.status === "online" ? (health.health.os_detail ?? null) : null}
       />
 
       <main className="mx-auto max-w-[1080px] px-5">
@@ -147,7 +149,11 @@ export default function App() {
 
         <section className="grid gap-4 pb-8 lg:grid-cols-2">
           <DriverPanel driver={driver} />
-          <RadioDoctor />
+          <RadioDoctor
+            os={health.status === "online" ? (health.health.os ?? null) : null}
+            osDetail={health.status === "online" ? (health.health.os_detail ?? null) : null}
+            arch={health.status === "online" ? (health.health.arch ?? null) : null}
+          />
         </section>
 
         <section className="pb-4">

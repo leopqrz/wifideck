@@ -28,6 +28,10 @@ export interface Health {
   service: string;
   version: string;
   mock: boolean;
+  os?: string; // "macOS" | "Linux" | "Windows"
+  os_detail?: string; // e.g. "macOS 14.5" / "Linux 6.15.0-kali"
+  arch?: string; // e.g. "arm64" / "x86_64"
+  backend?: string; // radio backend chosen for this OS
 }
 
 export type AdapterHealth = "ok" | "disconnected" | "degraded";

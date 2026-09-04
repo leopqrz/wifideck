@@ -4,7 +4,15 @@ import { getRadio, type RadioInfo } from "../api/client";
 // Radio doctor: which backend is active and what the radio can actually do —
 // capability-based, so it reads the same whether the RF path is Linux/nl80211 or
 // native macOS/libusb.
-export function RadioDoctor() {
+export function RadioDoctor({
+  os = null,
+  osDetail = null,
+  arch = null,
+}: {
+  os?: string | null;
+  osDetail?: string | null;
+  arch?: string | null;
+} = {}) {
   const [r, setR] = useState<RadioInfo | null>(null);
 
   useEffect(() => {
@@ -37,6 +45,15 @@ export function RadioDoctor() {
           {r.present ? "present" : "not present"}
         </span>
       </div>
+      {os && (
+        <div className="mt-2 flex items-center gap-2 font-mono text-xs">
+          <span className="text-muted">Host OS</span>
+          <span className="text-text">
+            {osDetail ?? os}
+            {arch ? ` · ${arch}` : ""}
+          </span>
+        </div>
+      )}
       <div className="mt-2 font-mono text-xs text-text">
         {r.adapter ?? "unknown adapter"}
         {r.chipset ? ` · ${r.chipset}` : ""}

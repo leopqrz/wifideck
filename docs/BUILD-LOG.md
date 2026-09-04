@@ -217,3 +217,10 @@ The AWUS036AXML is now a *future* modernization, not a rescue.
   icon), and **`scripts/install-launchers.sh`** to wire the absolute paths per OS.
   Smoke-tested in mock: launcher brings up backend (200 `/api/status`) + frontend
   (serves the SPA). Matches the one-codebase-detects-the-OS design.
+- **2026-09-04** — 🖥️ **Show the host OS in the UI.** Beyond the driver, the app now
+  says plainly which OS it's running on. `/api/health` reports `os` (macOS / Linux /
+  Windows), `os_detail` (e.g. `Linux 7.1.5+kali-arm64`), `arch`, and the RF `backend`
+  chosen for that OS. Surfaced in two places: an always-visible **OS chip in the top
+  rail** (🍎/🐧 + name, detail on hover) and a **Host OS** line in the **Radio Doctor**
+  next to the adapter/driver. OS stays out of `RadioInfo` (that model is deliberately
+  capability-based, not OS-based). +1 backend test → **163 backend + 56 frontend**.
