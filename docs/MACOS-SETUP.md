@@ -61,5 +61,11 @@ cd ../frontend && npm install && npm run dev      # http://localhost:5173
 - **5 GHz TX** is limited to channel 36 (driver calibration).
 - Bring-up can wedge after an interrupted capture — physically replug if a capture
   errors (the driver can't reset the chip in software).
-- Injection (deauth / guided flow) via `tools/inject.py` — validate against your own
-  AP first.
+- **Injection status (macOS):** `tools/inject.py` is a **raw-frame primitive** — it
+  injects beacons/probes or an arbitrary frame via `--frame-hex` (hardcoded BSSID; no
+  built-in deauth, no `--authorized-test`). So **deauth on macOS = craft an 802.11
+  deauth frame → `--frame-hex`**, and the exact frame/radiotap format needs on-hardware
+  validation. Until that's confirmed, the macOS backend does **capture only**; deauth /
+  the guided flow remain Linux-path features. Capture → verify → crack is fully covered.
+- **AP enumeration from a pcap:** `parse_tshark_beacons` lists the APs in a capture
+  (feeds the macOS scan / imported-pcap network view).

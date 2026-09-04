@@ -67,6 +67,25 @@ def parse_nmcli_wifi(text: str) -> list[Network]:
     return nets
 
 
+def parse_tshark_beacons(text: str) -> list[Network]:
+    """Parse tshark beacon fields (bssid \\t ssid \\t channel) into a deduped Network
+    list — used to enumerate APs from a pcap (macOS scan / an imported capture)."""
+    seen: dict[str, Network] = {}
+    for line in text.splitlines():
+        parts = line.split("\t")
+        if not parts or not parts[0].strip():
+            continue
+        bssid = parts[0].strip().upper()
+        ssid = parts[1].strip() if len(parts) > 1 and parts[1].strip() else None
+        ch = _to_int(parts[2].strip()) if len(parts) > 2 else None
+        if bssid not in seen:
+            seen[bssid] = Network(
+                bssid=bssid, ssid=ssid, channel=ch, band=band_for_channel(ch),
+                security=[], is_current=False,
+            )
+    return list(seen.values())
+
+
 def _dbm_to_pct(dbm: int | None) -> int | None:
     if dbm is None:
         return None
