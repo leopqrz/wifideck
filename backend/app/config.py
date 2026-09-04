@@ -34,6 +34,9 @@ class Settings:
     # so the UI and tests run with no ALFA attached.
     mock: bool = _bool("WIFIDECK_MOCK", False)
 
+    # Radio backend: auto | linux | macos | mock. auto picks by OS (Darwin → macos).
+    radio_backend: str = os.environ.get("WIFIDECK_RADIO_BACKEND", "auto")
+
     # Where capture sessions (csv + pcap) are written.
     capture_dir: str = os.environ.get("WIFIDECK_CAPTURE_DIR", "/tmp/wifideck/sessions")
 

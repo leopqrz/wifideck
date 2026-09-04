@@ -326,6 +326,28 @@ export interface Station {
 
 export const getStations = () => apiGet<Station[]>("/api/stations");
 
+export interface RadioCapabilities {
+  managed: boolean;
+  monitor_rx: boolean;
+  raw_tx: boolean;
+  channel_control: boolean;
+  ap_mode: boolean;
+  radiotap: boolean;
+  bands: string[];
+}
+
+export interface RadioInfo {
+  backend: string;
+  present: boolean;
+  adapter: string | null;
+  chipset: string | null;
+  driver: string | null;
+  capabilities: RadioCapabilities;
+  notes: string[];
+}
+
+export const getRadio = () => apiGet<RadioInfo>("/api/radio");
+
 export interface Anomaly {
   mac: string;
   vendor: string | null;

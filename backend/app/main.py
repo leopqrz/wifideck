@@ -31,6 +31,7 @@ from .routers import (
     metrics,
     mode,
     notify,
+    radio,
     report,
     scan,
     schedule,
@@ -113,6 +114,7 @@ app.include_router(metrics.router)
 app.include_router(stations.router)
 app.include_router(anomaly.router)
 app.include_router(schedule.router)
+app.include_router(radio.router)
 app.include_router(ws.router)
 
 # In production the built frontend (frontend/dist) is served from the same origin.

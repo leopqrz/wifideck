@@ -185,3 +185,13 @@ continue in the meantime.
   metrics → wids → rbac through the API in mock (defensive against shared-singleton
   leakage); CI gains a **security** job running the 6-invariant check. **141 backend
   tests.** **Next: Phase 29 (ML anomaly foundation).**
+- **2026-08-30** — 🍏 **macOS port — step M1 (radio abstraction + doctor).** Native
+  macOS capture proven (see RADIO-ENVIRONMENT.md), so WiFiDeck is going capability-
+  based instead of assuming a Linux wlan interface. Added `RadioCapabilities`/`RadioInfo`
+  models, a `RadioBackend` layer (`LinuxNl80211Backend`, `MacosRtl8812auBackend` for
+  the libusb path, `MockBackend`) selected by `WIFIDECK_RADIO_BACKEND` (auto|linux|
+  macos|mock), `GET /api/radio`, and a **Radio Doctor** panel (backend · adapter ·
+  chipset · driver · present + capability grid + notes). The Linux backend honestly
+  flags the rtw88 "monitor advertised but no RX" caveat. +4 backend +1 frontend test
+  → **148 backend + 54 frontend, 6/6 invariants**. Next: M2 — a macOS capture backend
+  wrapping `capture.py` → pcap → the existing verify/crack pipeline.
