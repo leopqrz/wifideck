@@ -51,3 +51,23 @@ _Captured: 2026-08-30._
 (the `phy` even advertises the modes). This is a **driver/environment** problem on
 kernel 7.1, **not** a hardware limitation. Paths under investigation: native-macOS
 libusb driver, a compatible-kernel RF VM, and newer upstream `rtl8812au` branches.
+
+## Native-macOS test — 2026-08-30 (PROOF)
+
+Ran [`xen-proc/rtl8812au-macos`](https://github.com/xen-proc/rtl8812au-macos) on the
+**macOS host** (adapter detached from the VM), per [MACOS-RTL8812AU-RUNBOOK.md](MACOS-RTL8812AU-RUNBOOK.md):
+
+- **2.4 GHz (ch 6): ✅ WORKS — 1152 frames** captured in 10 s, real beacons + data
+  from the operator's own AP `96:04:e3:ec:ab:5a` (Queiroz). Bring-up: "BB/RF tables
+  applied, RFE type 3".
+- **5 GHz (ch 36): retest pending.** The first attempt returned 0 frames only because
+  the adapter **dropped off the USB bus** after an `[Errno 5] I/O Error` at the end of
+  the ch6 capture (`error opening device: no USB device 0bda:8812 found`) — the known
+  "failed bring-up needs a physical replug" quirk, not a 5 GHz failure. Retest = replug
+  + ch36-only run.
+
+**Conclusion:** the ACH does **real native-macOS monitor capture** over libusb — no
+VMware, no Linux driver, no kext, no SIP change, no sudo. Native macOS is a **viable
+WiFiDeck RF backend**, and the most promising architecture (M4 → macOS → libusb → ACH
+→ WiFiDeck). Open item: bring-up **stability** (the mid-capture I/O drop) and 5 GHz
+confirmation.
