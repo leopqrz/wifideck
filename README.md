@@ -15,6 +15,10 @@ radio** (see [docs/HARDWARE.md](docs/HARDWARE.md)); the current RTL8812AU/`rtw88
 does MANAGED only. Plan: [docs/PLAN.md](docs/PLAN.md) · progress:
 [docs/BUILD-LOG.md](docs/BUILD-LOG.md).
 
+> 📖 **New here?** Read the **[User Guide](docs/USER-GUIDE.md)** — every function
+> explained, how to test it and what to expect, a deep take on **monitor mode**,
+> and curated learning resources (books, videos, sites).
+
 ![WiFiDeck dashboard](docs/screenshot.png)
 
 ## Features
