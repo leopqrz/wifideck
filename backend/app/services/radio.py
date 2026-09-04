@@ -9,6 +9,7 @@ Selection is by WIFIDECK_RADIO_BACKEND (auto|linux|macos|mock); auto picks by OS
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import platform
 import re
@@ -95,16 +96,29 @@ class LinuxNl80211Backend:
 class MacosRtl8812auBackend:
     name = "macos-rtl8812au"
 
-    async def info(self) -> RadioInfo:
-        present = False
-        note_present = "live presence checked on macOS via libusb"
-        try:  # pragma: no cover - only meaningful on macOS with pyusb installed
+    async def _present(self) -> tuple[bool, str]:
+        """Is 0bda:8812 on the USB bus? pyusb if available, else system_profiler (macOS)."""
+        try:
             import usb.core
 
-            present = usb.core.find(idVendor=0x0BDA, idProduct=0x8812) is not None
-            note_present = "libusb sees 0bda:8812" if present else "0bda:8812 not on USB"
+            if usb.core.find(idVendor=0x0BDA, idProduct=0x8812) is not None:
+                return True, "libusb sees 0bda:8812"
         except Exception:
             pass
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "system_profiler", "SPUSBDataType",
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
+            )
+            out, _ = await asyncio.wait_for(proc.communicate(), timeout=8)
+            if b"0x8812" in out:
+                return True, "system_profiler sees 0x8812"
+            return False, "adapter not on the USB bus (plug it into macOS)"
+        except (FileNotFoundError, OSError, asyncio.TimeoutError):
+            return False, "presence unknown (no pyusb / system_profiler)"
+
+    async def info(self) -> RadioInfo:
+        present, note_present = await self._present()
         return RadioInfo(
             backend=self.name, present=present,
             adapter="ALFA AWUS036ACH", chipset="RTL8812AU",
