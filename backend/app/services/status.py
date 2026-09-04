@@ -16,7 +16,33 @@ class StatusService:
     def __init__(self, runner: CommandRunner) -> None:
         self.runner = runner
 
+    async def _macos_snapshot(self) -> Status:
+        """Status for the native-macOS libusb radio (a monitor/injection device)."""
+        from .radio import MacosRtl8812auBackend
+
+        info = await MacosRtl8812auBackend().info()
+        present = info.present
+        return Status(
+            usb_present=present,
+            driver=info.driver,          # "libusb (rtl8812au-macos)"
+            interface="libusb",
+            mode="MONITOR" if present else None,  # it's a monitor-only radio
+            operstate="up" if present else "down",
+            ssid=None, ip4=None, signal_dbm=None, tx_bitrate_mbps=None,
+            freq_mhz=None, band=None,
+            health=Health.OK if present else Health.DISCONNECTED,
+            health_detail=None if present else "Plug the ALFA into macOS (native RF backend).",
+        )
+
     async def snapshot(self) -> Status:
+        # On the native-macOS RF backend there is no iw/nmcli/sysfs — report the
+        # libusb radio's state instead of a false "disconnected".
+        from ..config import settings
+        from .radio import resolve_backend_name
+
+        if resolve_backend_name(settings.mock, settings.radio_backend) == "macos-rtl8812au":
+            return await self._macos_snapshot()
+
         usb_present = (await self.runner.run(["lsusb", "-d", USB_ID])).ok
 
         devs = parsers.parse_iw_dev((await self.runner.run(["iw", "dev"])).stdout)
