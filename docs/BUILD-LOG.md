@@ -13,7 +13,7 @@ _Last updated: 2026-08-30._
 | **Mac M4 Pro Max, 64 GB** | **runs everything** — hashcat GPU (Metal), ML training + inference, the VM. Outclasses the Jetson for both training and inference. |
 | ~~Jetson Orin Nano 8 GB~~ | **not needed** — the M4 handles all ML. Only worth it later as a *standalone deployed sensor* (a box left running away from the laptop). |
 | **AWS** | optional — heavier model training / GPU crack bursts / wordlist storage (the M4 covers day-to-day) |
-| **ALFA AWUS036ACH (RTL8812AU, `rtw88`)** | current radio — MANAGED scan OK; **monitor RX + inject CONFIRMED DEAD** (2026-08-30: 0 beacons in 36s hopping; `aireplay --test` found 0 APs); **no AP mode** |
+| **ALFA AWUS036ACH (RTL8812AU)** | current radio — dead for monitor on **Linux/rtw88** (kernel 7.1), but **WORKS natively on macOS** via libusb: stable 2.4+5 GHz monitor RX (ADR-001 / RADIO-ENVIRONMENT.md). **No new hardware needed.** |
 | Willing to invest | new radios, GPS, more compute as phases need them |
 
 ## Status legend
@@ -73,16 +73,19 @@ Not bolted-on hype — real, modern uses:
   light inference can even run CPU-side in the VM. A Jetson is only for a *separate,
   always-on deployed sensor* later — not required for the all-in-one setup.
 
-## Real-capture verdict (2026-08-30)
+## Real-capture verdict — SUPERSEDED (2026-08-30)
 
-Tested the current adapter directly: `sudo airodump-ng wlan0` → **0 beacons / 0 APs**
-in 36s (channel-hopping worked, RX did not); `sudo aireplay-ng --test wlan0` →
-**Found 0 APs**. Conclusion: **RTL8812AU + rtw88 cannot do monitor capture or
-injection** — not fixable in software. Everything above the radio layer is
-validated (mock + live recon + full pipeline execution). **Real capture (Tier 3)
-is blocked until a capable radio.** Recommended: ALFA **AWUS036AXML** (MT7921U,
-in-kernel `mt76`) — monitor + inject + AP mode + WPA3/6 GHz. Software-only phases
-continue in the meantime.
+**Original (wrong):** on Linux/kernel-7.1 the ACH showed 0 beacons in 36 s and no
+injection, and we concluded new hardware was required.
+
+**Corrected + proven:** the RTL8812AU hardware is fully capable — it does **stable
+2.4 + 5 GHz monitor capture natively on macOS** via libusb (5749 / 1097 / 3804
+frames across back-to-back runs, zero I/O errors). The Linux failure was the
+`rtw88`/kernel-7.1 environment (and VMware fighting for the USB device). **No new
+hardware needed.** WiFiDeck is being ported to a native-macOS RF backend
+(M4 → macOS → libusb → ACH → WiFiDeck). See
+[ADR-001](ADR-001-adapter-swap.md) + [RADIO-ENVIRONMENT.md](RADIO-ENVIRONMENT.md).
+The AWUS036AXML is now a *future* modernization, not a rescue.
 
 ## Running log
 
