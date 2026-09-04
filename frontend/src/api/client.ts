@@ -326,6 +326,16 @@ export interface Station {
 
 export const getStations = () => apiGet<Station[]>("/api/stations");
 
+// macOS monitor-scan: listen on a channel a few seconds, return the APs heard.
+export async function scanOnce(channel = 6, seconds = 5): Promise<Network[]> {
+  const res = await fetch(`/api/scan/once?channel=${channel}&seconds=${seconds}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) throw new Error(`scan ${res.status}`);
+  return res.json();
+}
+
 export interface RadioCapabilities {
   managed: boolean;
   monitor_rx: boolean;

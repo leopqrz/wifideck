@@ -36,6 +36,38 @@ def macos_capture_argv(
     cap = os.path.join(rtl_dir, "tools", "capture.py") if rtl_dir else "tools/capture.py"
     return [py, cap, "-c", str(channel or 6), "-t", str(seconds), "-o", out_path]
 
+
+async def macos_scan(rtl_dir: str, channel: int = 6, seconds: int = 4):
+    """macOS 'scan' — a brief monitor capture on one channel, parsed for beacons →
+    the APs heard on that channel. Returns [] on any failure (adapter off the bus, etc.)."""
+    import os
+    import tempfile
+
+    from .scan import parse_tshark_beacons
+
+    tmp = tempfile.mkdtemp(prefix="wd_scan_")
+    pcap = os.path.join(tmp, "scan.pcap")
+    argv = macos_capture_argv(rtl_dir, channel, pcap, seconds=max(2, seconds))
+    try:
+        cap = await asyncio.create_subprocess_exec(
+            *argv, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL
+        )
+        await asyncio.wait_for(cap.communicate(), timeout=seconds + 20)
+    except (FileNotFoundError, OSError, asyncio.TimeoutError):
+        return []
+    if not os.path.isfile(pcap):
+        return []
+    try:
+        ts = await asyncio.create_subprocess_exec(
+            "tshark", "-r", pcap, "-n", "-Y", "wlan.fc.type_subtype==0x08",
+            "-T", "fields", "-e", "wlan.bssid", "-e", "wlan.ssid", "-e", "wlan_radio.channel",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
+        )
+        out, _ = await asyncio.wait_for(ts.communicate(), timeout=25)
+    except (FileNotFoundError, OSError, asyncio.TimeoutError):
+        return []
+    return parse_tshark_beacons(out.decode(errors="replace"))
+
 _ACH_NOTE = (
     "monitor advertised by phy, but rtw88 delivers no RX on this kernel — use the "
     "macOS backend (docs/RADIO-ENVIRONMENT.md)"

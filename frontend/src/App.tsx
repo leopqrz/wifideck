@@ -10,6 +10,7 @@ import { ShareControl } from "./components/ShareControl";
 import { MetricsPanel } from "./components/MetricsPanel";
 import { DriverPanel } from "./components/DriverPanel";
 import { StationsPanel } from "./components/StationsPanel";
+import { ScanPanel } from "./components/ScanPanel";
 import { RadioDoctor } from "./components/RadioDoctor";
 import { AnomalyPanel } from "./components/AnomalyPanel";
 import { WatchdogPanel } from "./components/WatchdogPanel";
@@ -123,6 +124,10 @@ export default function App() {
         <section className="grid gap-4 pb-8 lg:grid-cols-2">
           <CaptureControl status={status} session={capture.session} />
           <ShareControl share={share} onChange={refreshShare} />
+        </section>
+
+        <section className="pb-8">
+          <ScanPanel />
         </section>
 
         <section className="pb-8">
