@@ -30,11 +30,16 @@ class CommandRunner:
     async def run(self, args: list[str], timeout: float = 15.0) -> CommandResult:
         if self.mock:
             return self._mock(args)
-        proc = await asyncio.create_subprocess_exec(
-            *args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *args,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        except (FileNotFoundError, OSError) as e:
+            # Tool not present (e.g. iw / nmcli on macOS) — degrade to a failed result
+            # instead of raising, so callers (status/scan/…) don't crash the stream.
+            return CommandResult(127, "", f"{args[0] if args else '?'}: {e}")
         try:
             out, err = await asyncio.wait_for(proc.communicate(), timeout=timeout)
         except asyncio.TimeoutError:
