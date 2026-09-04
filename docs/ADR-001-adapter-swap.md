@@ -1,14 +1,55 @@
-# ADR-001 — Replace the RTL8812AU adapter with a MediaTek radio
+# ADR-001 — RTL8812AU monitor/injection: fix the environment first, MediaTek later
 
-**Status:** Accepted · **Date:** 2026-08-30 · **Owner:** leo
+**Status:** **Revised 2026-08-30** (supersedes the original "replace the adapter now"
+decision, kept below as history) · **Owner:** leo
 
-## Decision (TL;DR)
+## Decision (TL;DR) — revised
 
-Buy an **ALFA AWUS036AXML** (MediaTek **MT7921AU**, `mt76` driver) for all
-capture/injection work. **Keep** the current ALFA AWUS036ACH — it still works fine
-in MANAGED mode and has better range — but it **cannot do monitor capture or frame
-injection on this system**, and that can't be fixed in software. This is a
-hardware/driver limitation, not a WiFiDeck bug.
+**Do not replace the adapter yet.** Mature WiFiDeck on the hardware we already own
+(ALFA AWUS036ACH / RTL8812AU) and get **real monitor-mode capture** from it. The
+original conclusion — that it "cannot do monitor/injection and that can't be fixed
+in software" — **was too strong and is retracted.**
+
+- **The RTL8812AU *hardware* is capable** of managed, monitor, raw capture, and
+  injection. The `phy` even advertises `monitor` + `AP` modes.
+- **What actually failed** is the **kernel-7.1 / driver / environment** combination
+  (`rtw88` doesn't deliver monitor RX for this chip; the `rtl88xxau` DKMS won't
+  build on 7.1). That's a software/environment problem — with several unexplored
+  fixes — not a dead end.
+
+**Investigation order (simplest, most reproducible first):**
+
+1. **Native macOS** userspace driver ([`xen-proc/rtl8812au-macos`](https://github.com/xen-proc/rtl8812au-macos))
+   — libusb, no kext, no SIP change; claims hardware-verified 2.4/5 GHz monitor RX +
+   injection + pcap. If it proves reliable, it could remove VMware from the RF path
+   entirely (M4 → macOS → libusb → ACH → WiFiDeck). **Audit + prototype before
+   trusting** (it's early-stage: ~2 commits).
+2. **Current Kali 7.1** with a newer/patched upstream `rtl8812au` branch, *if* one
+   compiles **and** delivers real monitor RX (not just compiles).
+3. **Dedicated RF VM** pinned to a known-good kernel + `rtl8812au` — without
+   downgrading the main dev VM.
+4. **Only then** evaluate the **AWUS036AXML (MT7921AU)** as a *future modernization*
+   (Wi-Fi 6E / in-kernel `mt76`), not a rescue for an unresolved software problem.
+
+Full investigation plan and current environment: [RADIO-ENVIRONMENT.md](RADIO-ENVIRONMENT.md).
+
+### Why the original conclusion was wrong
+
+It over-generalized from a true, narrow fact ("**`rtw88` on kernel 7.1** yields no
+monitor RX, and the **installed** `rtl88xxau` DKMS won't build there") to a broad,
+false one ("the adapter can't do it in software"). It also predated the native-macOS
+libusb option. The narrow fact and the driver-port findings below remain accurate and
+useful; the *recommendation* built on them was premature.
+
+---
+
+## Original decision (2026-08-30) — HISTORICAL, superseded
+
+> Buy an **ALFA AWUS036AXML** (MediaTek **MT7921AU**, `mt76` driver) for all
+> capture/injection work. **Keep** the current ALFA AWUS036ACH — it still works fine
+> in MANAGED mode and has better range — but it cannot do monitor capture or frame
+> injection on this system. _(Retracted: see the revised decision above — the ACH
+> can do monitor/injection with the right driver/environment.)_
 
 ## Context
 
