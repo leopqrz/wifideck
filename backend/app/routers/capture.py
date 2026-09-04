@@ -26,6 +26,12 @@ class CaptureRequest(BaseModel):
     mode: Literal["handshake", "pmkid"] = "handshake"
 
 
+class ImportRequest(BaseModel):
+    path: str
+    channel: int | None = Field(default=None, ge=1, le=196)
+    bssid: str | None = None
+
+
 @router.post("/api/capture", response_model=CaptureSession)
 async def start_capture(
     req: CaptureRequest,
@@ -46,6 +52,18 @@ async def start_capture(
         raise HTTPException(status_code=409, detail="A capture is already running.") from None
     except CaptureError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.post("/api/capture/import", response_model=CaptureSession)
+async def import_capture(
+    req: ImportRequest,
+    _: bool = Depends(require_token),
+    svc: CaptureService = Depends(get_capture_service),
+) -> CaptureSession:
+    try:
+        return await svc.import_pcap(req.path, req.channel, req.bssid)
+    except CaptureError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/api/capture/{sid}/stop", response_model=CaptureSession)

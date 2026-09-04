@@ -18,6 +18,7 @@ import { TargetSelector } from "./components/TargetSelector";
 import { ActivePanel } from "./components/ActivePanel";
 import { FlowPanel } from "./components/FlowPanel";
 import { CrackPanel } from "./components/CrackPanel";
+import { ImportPcap } from "./components/ImportPcap";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { ReportPanel } from "./components/ReportPanel";
 import { IntegrationsPanel } from "./components/IntegrationsPanel";
@@ -162,6 +163,10 @@ export default function App() {
 
         <section className="pb-8">
           <FlowPanel target={target} targetNet={targetNet} flow={flow} />
+        </section>
+
+        <section className="pb-8">
+          <ImportPcap />
         </section>
 
         <section className="pb-8">

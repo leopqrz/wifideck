@@ -348,6 +348,29 @@ export interface RadioInfo {
 
 export const getRadio = () => apiGet<RadioInfo>("/api/radio");
 
+// Adopt an externally-captured pcap (e.g. from the macOS libusb driver) as a session.
+export async function importPcap(
+  path: string,
+  channel?: number | null,
+  bssid?: string | null,
+): Promise<CaptureSession> {
+  const res = await fetch("/api/capture/import", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ path, channel: channel ?? null, bssid: bssid ?? null }),
+  });
+  if (!res.ok) {
+    let d = `import ${res.status}`;
+    try {
+      d = (await res.json()).detail ?? d;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(d);
+  }
+  return res.json();
+}
+
 export interface Anomaly {
   mac: string;
   vendor: string | null;

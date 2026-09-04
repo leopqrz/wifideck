@@ -9,6 +9,7 @@ import asyncio
 import glob
 import os
 import re
+import shutil
 import time
 from datetime import datetime, timezone
 
@@ -171,6 +172,39 @@ class CaptureService:
             session.handshake = session.handshake or flags["handshake"]
             session.pmkid = session.pmkid or flags["pmkid"]
         return nets
+
+    async def import_pcap(
+        self, src_path: str, channel: int | None = None, bssid: str | None = None
+    ) -> CaptureSession:
+        """Adopt an externally-captured pcap (e.g. from the macOS libusb driver) as a
+        capture session, so it flows through verify → crack → history like any other."""
+        if not os.path.isfile(src_path):
+            raise CaptureError(f"pcap not found: {src_path}")
+        sid = time.strftime("%Y%m%d-%H%M%S") + "-imp"
+        os.makedirs(self._dir(sid), exist_ok=True)
+        ext = os.path.splitext(src_path)[1] or ".pcap"
+        dst = self._prefix(sid) + ext
+        shutil.copy(src_path, dst)
+
+        session = CaptureSession(
+            id=sid,
+            started=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            stopped=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            running=False, mode="import", channel=channel, target_bssid=bssid,
+            pcap_available=True,
+        )
+        self.sessions[sid] = session
+
+        if self.mock:
+            session.handshake = True
+        else:
+            result = await self.runner.run(["aircrack-ng", dst])
+            flags = parse_aircrack_handshakes(result.stdout, bssid)
+            session.handshake = flags["handshake"]
+            session.pmkid = flags["pmkid"]
+        if self.history:
+            self.history.record_session(session)
+        return session
 
     def pcap_path(self, sid: str) -> str | None:
         # airodump writes capture-01.cap; hcxdumptool writes capture.pcapng.

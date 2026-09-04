@@ -198,3 +198,12 @@ The AWUS036AXML is now a *future* modernization, not a rescue.
   flags the rtw88 "monitor advertised but no RX" caveat. +4 backend +1 frontend test
   → **148 backend + 54 frontend, 6/6 invariants**. Next: M2 — a macOS capture backend
   wrapping `capture.py` → pcap → the existing verify/crack pipeline.
+- **2026-08-30** — 🍏 **macOS port — step M2 (import pcap).** The bridge that makes the
+  macOS→WiFiDeck flow real: `CaptureService.import_pcap` adopts an externally-captured
+  pcap (e.g. the libusb driver's `capture.py -o out.pcap`) as a capture session —
+  copies it in, detects handshake/PMKID, records to history — so it flows through the
+  existing **verify → crack → report** pipeline like any capture. `POST
+  /api/capture/import` + an **Import pcap** panel (path + optional BSSID). +3 backend +1
+  frontend test → **151 backend + 55 frontend, 6/6 invariants**. Next: M3 — drive
+  `capture.py` directly from the backend (live capture on macOS), and run the whole
+  app natively on the Mac.
