@@ -1,27 +1,45 @@
 #!/usr/bin/env bash
 #
-# wifideck — open the WiFiDeck app.
+# wifideck — open the WiFiDeck app (macOS + Linux; detects the OS and adapts).
 #
-#   * If the installed systemd service is running, just opens the browser.
+#   * If the installed systemd service is running (Linux), just opens the browser.
 #   * Otherwise starts the backend + frontend dev servers and opens the browser.
 #     Ctrl+C stops both.
+#
+# The backend auto-selects its radio backend by OS (libusb rtl8812au on macOS,
+# nl80211/iw on Linux) — see backend/app/services/radio.py. This launcher just
+# boots the two servers with the right platform commands.
 #
 # Options (env):
 #   WIFIDECK_MOCK=1     run with fixtures, no adapter needed
 #   WIFIDECK_TOKEN=...  API token (default: dev-token-change-me)
-#   WIFIDECK_SUDO=1     run the backend as root so mode-switch / capture /
-#                       deauth / sharing work (sudo prompts once)
+#   WIFIDECK_SUDO=1     (Linux) run the backend as root so mode-switch / capture /
+#                       deauth / sharing work (sudo prompts once). Not needed on
+#                       macOS — the libusb driver runs as your user.
 #   WIFIDECK_ENABLE_ACTIVE=1  enable the offensive modules (deauth, guided
 #                       capture) — authorized testing of your OWN networks only;
 #                       pick a network from the scan, confirm once, all audited
+#   WIFIDECK_BACKEND_PORT=8787   backend port (also read by the Vite proxy)
 #
 set -euo pipefail
-ROOT="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+
+# --- portable repo-root resolution (macOS ships BSD readlink, no `-f`) --------
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [ "${SOURCE#/}" = "$SOURCE" ] && SOURCE="$DIR/$SOURCE"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+
+OS="$(uname -s)"                                   # Darwin | Linux
 TOKEN="${WIFIDECK_TOKEN:-dev-token-change-me}"
 MOCK="${WIFIDECK_MOCK:-0}"
+BPORT="${WIFIDECK_BACKEND_PORT:-8787}"
+export WIFIDECK_BACKEND_PORT="$BPORT"              # the Vite proxy reads this too
 
 SUDO=""
-if [ "${WIFIDECK_SUDO:-0}" = "1" ]; then
+if [ "${WIFIDECK_SUDO:-0}" = "1" ] && [ "$OS" != "Darwin" ]; then
   SUDO="sudo"
   echo "→ backend will run as root (WIFIDECK_SUDO=1); sudo may prompt for your password"
 fi
@@ -33,39 +51,63 @@ STATE_DIR="/tmp/wifideck"
 mkdir -p "$STATE_DIR" 2>/dev/null || true
 [ -n "$SUDO" ] && $SUDO chown -R "$(id -un):$(id -gn)" "$STATE_DIR" 2>/dev/null || true
 
-open_url() { (xdg-open "$1" >/dev/null 2>&1 || sensible-browser "$1" >/dev/null 2>&1 || echo "  open $1 in your browser") & }
+# open a URL in the default browser — macOS `open`, Linux `xdg-open`.
+open_url() {
+  if [ "$OS" = "Darwin" ]; then
+    (open "$1" >/dev/null 2>&1 || echo "  open $1 in your browser") &
+  else
+    (xdg-open "$1" >/dev/null 2>&1 || sensible-browser "$1" >/dev/null 2>&1 || echo "  open $1 in your browser") &
+  fi
+}
 
-# 1. Production: the service is already running -> just open it.
-if systemctl is-active --quiet wifideck 2>/dev/null; then
-  echo "wifideck service is running — opening http://127.0.0.1:8787"
-  open_url "http://127.0.0.1:8787"
+# 1. Production (Linux only): the systemd service is running -> just open it.
+if [ "$OS" != "Darwin" ] && systemctl is-active --quiet wifideck 2>/dev/null; then
+  echo "wifideck service is running — opening http://127.0.0.1:$BPORT"
+  open_url "http://127.0.0.1:$BPORT"
   exit 0
 fi
 
 # 2. Dev: start backend + frontend.
-export NVM_DIR="$HOME/.nvm"
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
 if ! command -v npm >/dev/null 2>&1; then
   echo "ERROR: Node/npm not found. Install Node 18+ (nvm recommended) for the frontend." >&2
   exit 1
 fi
 
-BACKEND_PAT="uvicorn app.main:app --host 127.0.0.1 --port 8787"
+# Prefer a project venv (macOS setup uses backend/.venv), else system python3.
+if [ -x "$ROOT/backend/.venv/bin/python" ]; then
+  PY="$ROOT/backend/.venv/bin/python"
+else
+  PY="python3"
+fi
+
+BACKEND_PAT="uvicorn app.main:app --host 127.0.0.1 --port $BPORT"
+VITE_PAT="$ROOT/frontend/node_modules/.bin/vite"   # this repo's dev server only
+
+# Is $BPORT still bound? `ss` on Linux, `lsof` on macOS.
+port_busy() {
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn 2>/dev/null | grep -q ":$BPORT "
+  elif command -v lsof >/dev/null 2>&1; then
+    lsof -nP -iTCP:"$BPORT" -sTCP:LISTEN >/dev/null 2>&1
+  else
+    return 1
+  fi
+}
 
 # Reap anything left over from a previous run so a plain ./wifideck restarts
 # cleanly — no manual pkill needed. Covers a backend (root, if it was sudo'd) and
 # orphaned monitor scans that would otherwise pin the adapter in monitor mode.
-# Force-kill (leftovers are being discarded) and wait for :8787 to actually free
-# before we try to bind it.
 reap_stale() {
   pkill -9 -f "$BACKEND_PAT" 2>/dev/null || true
+  pkill -9 -f "$VITE_PAT" 2>/dev/null || true
   if [ -n "$SUDO" ]; then
     $SUDO pkill -9 -f "$BACKEND_PAT" 2>/dev/null || true
     $SUDO pkill -9 -f "airodump-ng .*wd_scan_" 2>/dev/null || true
   fi
   for _ in $(seq 1 20); do
-    command -v ss >/dev/null 2>&1 || { sleep 1; break; }
-    ss -ltn 2>/dev/null | grep -q ':8787 ' || break
+    port_busy || break
     sleep 0.25
   done
 }
@@ -75,6 +117,7 @@ pids=()
 cleanup() {
   echo; echo "stopping WiFiDeck…"
   kill "${pids[@]}" 2>/dev/null || true
+  pkill -f "$VITE_PAT" 2>/dev/null || true
   # a sudo'd backend runs as root, so reap it (and any monitor scan) explicitly
   if [ -n "$SUDO" ]; then
     $SUDO pkill -f "$BACKEND_PAT" 2>/dev/null || true
@@ -91,13 +134,16 @@ while IFS= read -r kv; do WD_ENV+=("$kv"); done < <(env | grep '^WIFIDECK_')
 
 ACTIVE_NOTE=""
 [ "${WIFIDECK_ENABLE_ACTIVE:-0}" = "1" ] && ACTIVE_NOTE=", active modules ON"
-echo "→ backend  http://127.0.0.1:8787  (mock=$MOCK${SUDO:+, root}$ACTIVE_NOTE)"
-( cd "$ROOT/backend" && $SUDO env "${WD_ENV[@]}" \
-    PYTHONPATH=. python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8787 ) &
+echo "→ backend  http://127.0.0.1:$BPORT  ($OS, mock=$MOCK${SUDO:+, root}$ACTIVE_NOTE)"
+# `exec` so $! is the actual backend process (not a wrapper subshell) — then a
+# non-interactive kill (window close, `timeout`) reaps it, not just Ctrl+C.
+( cd "$ROOT/backend" && exec $SUDO env "${WD_ENV[@]}" \
+    PYTHONPATH=. "$PY" -m uvicorn app.main:app --host 127.0.0.1 --port "$BPORT" ) &
 pids+=($!)
 
 echo "→ frontend http://localhost:5173"
-( cd "$ROOT/frontend" && { [ -d node_modules ] || npm install; } && npm run dev ) &
+# install first (if needed), then exec vite directly so $! is the vite process.
+( cd "$ROOT/frontend" && { [ -d node_modules ] || npm install; } && exec ./node_modules/.bin/vite ) &
 pids+=($!)
 
 # wait for the dev server, then open the browser

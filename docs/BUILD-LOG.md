@@ -207,3 +207,13 @@ The AWUS036AXML is now a *future* modernization, not a rescue.
   frontend test → **151 backend + 55 frontend, 6/6 invariants**. Next: M3 — drive
   `capture.py` directly from the backend (live capture on macOS), and run the whole
   app natively on the Mac.
+- **2026-09-04** — 🖱️ **Click-to-launch (macOS + Linux).** One clickable app that
+  boots backend + frontend and opens the dashboard — no terminal needed. Made the
+  `./wifideck` launcher **OS-adaptive** (portable repo-root resolution, `open` vs
+  `xdg-open`, `lsof` vs `ss` port checks, systemd only on Linux, prefers
+  `backend/.venv`); it `exec`s uvicorn/vite so `$!` is the real PID and a
+  window-close reaps both (not just Ctrl+C). Added **`WiFiDeck.app`** (a real macOS
+  bundle → Spotlight/Launchpad/Dock), **`WiFiDeck.desktop`** (Linux menu + Desktop
+  icon), and **`scripts/install-launchers.sh`** to wire the absolute paths per OS.
+  Smoke-tested in mock: launcher brings up backend (200 `/api/status`) + frontend
+  (serves the SPA). Matches the one-codebase-detects-the-OS design.

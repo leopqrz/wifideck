@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# WiFiDeck.app launcher — double-click in Finder / Launchpad / Dock.
+# Opens a Terminal window running ./wifideck (backend + frontend), which then
+# opens the dashboard in your browser. Close the window or hit Ctrl+C to stop.
+#
+# Repo location, in priority order:
+#   1. $WIFIDECK_ROOT (if it points at a checkout)
+#   2. ~/.config/wifideck/root  (written by scripts/install-launchers.sh when the
+#      .app is copied to /Applications, away from the repo)
+#   3. the repo this .app sits in  (WiFiDeck.app lives in the repo root)
+#
+set -eu
+
+if [ -n "${WIFIDECK_ROOT:-}" ] && [ -x "$WIFIDECK_ROOT/wifideck" ]; then
+  ROOT="$WIFIDECK_ROOT"
+elif [ -f "$HOME/.config/wifideck/root" ] && [ -x "$(cat "$HOME/.config/wifideck/root")/wifideck" ]; then
+  ROOT="$(cat "$HOME/.config/wifideck/root")"
+else
+  ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+fi
+
+if [ ! -x "$ROOT/wifideck" ]; then
+  osascript -e 'display alert "WiFiDeck" message "Could not find the WiFiDeck project. Run scripts/install-launchers.sh from the repo, or set WIFIDECK_ROOT." as critical' >/dev/null 2>&1 || true
+  exit 1
+fi
+
+# Hand the launcher to Terminal so there is a visible window with logs and a
+# working Ctrl+C. `open -a Terminal <script>` runs the (executable) script.
+open -a Terminal "$ROOT/wifideck"

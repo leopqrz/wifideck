@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=WiFiDeck
+Comment=Local command center for USB Wi-Fi adapters — starts backend + frontend
+# NOTE: Exec must be an ABSOLUTE path. This committed file is a template;
+# run scripts/install-launchers.sh to generate a resolved copy in your
+# applications menu and on your Desktop. Or edit the path below by hand.
+Exec=/REPLACE_WITH_REPO/wifideck
+Icon=network-wireless
+Terminal=true
+Categories=Development;Network;Security;
+Keywords=wifi;wireless;monitor;capture;alfa;rtl8812au;

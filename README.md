@@ -40,8 +40,22 @@ does MANAGED only. Plan: [docs/PLAN.md](docs/PLAN.md) · progress:
 
 ## Quick start
 
-Easiest — one command starts the backend + frontend and opens your browser
-(Ctrl+C stops both). If the systemd service is running it just opens it:
+**Click to launch** — one clickable app that starts the backend + frontend and
+opens the dashboard (works the same on macOS and Linux; it detects the OS and
+picks the right RF backend automatically). Run the one-time installer, then
+double-click:
+
+```bash
+./scripts/install-launchers.sh
+#   macOS → WiFiDeck.app in ~/Applications (Spotlight / Launchpad / drag to Dock)
+#           the in-repo WiFiDeck.app is also double-clickable directly
+#   Linux → “WiFiDeck” in your app menu + a Desktop icon
+```
+
+A window opens with the servers' logs; close it (or Ctrl+C) to stop both.
+
+Prefer the terminal? — one command does the same (Ctrl+C stops both). If the
+Linux systemd service is running it just opens it:
 
 ```bash
 ./wifideck                 # http://localhost:5173  (view/scan/connect work as your user)
